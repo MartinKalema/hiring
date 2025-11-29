@@ -46,8 +46,8 @@ export default async function HomePage() {
           <Link href="/sign-up" className="btn-primary text-lg px-8 py-4">
             Start Free Trial
           </Link>
-          <Link href="#demo" className="btn-secondary text-lg px-8 py-4">
-            Watch Demo
+          <Link href="/interview/demo" className="btn-secondary text-lg px-8 py-4">
+            Try Demo Interview
           </Link>
         </div>
 
