@@ -35,16 +35,25 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Interview page gradient background - like Braintrust AIR */
-.interview-gradient {
-  background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #ddd6fe 100%);
+/* Interview page - force light theme like Braintrust AIR */
+.interview-page {
+  --background: #ffffff;
+  --foreground: #171717;
+  --secondary: #f3f4f6;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  background: linear-gradient(180deg, #fef7ed 0%, #fce8f3 40%, #e8e0f7 100%);
   min-height: 100vh;
+  color: var(--foreground);
 }
 
-@media (prefers-color-scheme: dark) {
-  .interview-gradient {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  }
+/* Active interview dark theme */
+.interview-active {
+  --background: #1a1a2e;
+  --foreground: #ffffff;
+  background: linear-gradient(180deg, #2d2d3a 0%, #1a1a2e 50%, #0f0f1a 100%);
+  min-height: 100vh;
+  color: var(--foreground);
 }
 
 /* AI Orb animation - the pulsing visual when AI is speaking */
@@ -267,4 +276,189 @@ body {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* Decorative circles for welcome page */
+.decorative-circle {
+  border-radius: 50%;
+  position: absolute;
+}
+
+.decorative-circle-1 {
+  background: linear-gradient(135deg, #fcd5ce 0%, #f8edeb 100%);
+}
+
+.decorative-circle-2 {
+  background: linear-gradient(135deg, #d8e2dc 0%, #e8e8e4 100%);
+}
+
+.decorative-circle-3 {
+  background: linear-gradient(135deg, #ffe5d9 0%, #fec89a 100%);
+}
+
+.decorative-circle-4 {
+  background: linear-gradient(135deg, #c8b6ff 0%, #e2cfea 100%);
+}
+
+.decorative-circle-5 {
+  background: linear-gradient(135deg, #bde0fe 0%, #a2d2ff 100%);
+}
+
+/* Interview header bar */
+.interview-header {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Time warning styles */
+.time-warning {
+  animation: time-pulse 1s ease-in-out infinite;
+  color: #f59e0b;
+}
+
+.time-critical {
+  animation: time-pulse 0.5s ease-in-out infinite;
+  color: #ef4444;
+}
+
+@keyframes time-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modal-enter 0.2s ease-out;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Improved AI orb for interview */
+.ai-orb-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-orb-outer-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  animation: ring-rotate 20s linear infinite;
+}
+
+.ai-orb-inner-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  animation: ring-rotate 15s linear infinite reverse;
+}
+
+@keyframes ring-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Speaking waves animation */
+.speaking-wave-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 40px;
+}
+
+.speaking-wave-bar {
+  width: 4px;
+  background: linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: 2px;
+  animation: wave-animation 0.8s ease-in-out infinite;
+}
+
+.speaking-wave-bar:nth-child(1) { animation-delay: 0s; height: 20px; }
+.speaking-wave-bar:nth-child(2) { animation-delay: 0.1s; height: 30px; }
+.speaking-wave-bar:nth-child(3) { animation-delay: 0.2s; height: 40px; }
+.speaking-wave-bar:nth-child(4) { animation-delay: 0.3s; height: 30px; }
+.speaking-wave-bar:nth-child(5) { animation-delay: 0.4s; height: 20px; }
+
+@keyframes wave-animation {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1); }
+}
+
+/* What to expect section */
+.expect-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 0;
+}
+
+.expect-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.expect-icon-check {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.expect-icon-info {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.expect-icon-video {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.expect-icon-alert {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Privacy link styling */
+.privacy-link {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.privacy-link:hover {
+  color: var(--primary-hover);
 }
