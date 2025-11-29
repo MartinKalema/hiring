@@ -142,13 +142,13 @@ export class DeepgramVoiceAgent {
       // Initialize audio context - use default sample rate for output playback
       this.audioContext = new AudioContext()
 
-      // Connect to Deepgram Voice Agent WebSocket V1 with API key via subprotocol
-      // Per docs: https://developers.deepgram.com/docs/using-the-sec-websocket-protocol
-      const wsUrl = `wss://agent.deepgram.com/v1/agent/converse`
+      // Connect to Deepgram Voice Agent WebSocket V1 with API key via query parameter
+      // Per docs: https://developers.deepgram.com/reference/voice-agent/agent
+      const wsUrl = `wss://agent.deepgram.com/v1/agent/converse?token=${this.apiKey}`
       console.log('[Deepgram] Connecting to Voice Agent...')
-      console.log('[Deepgram] URL:', wsUrl)
+      console.log('[Deepgram] URL:', wsUrl.replace(this.apiKey, '***'))
       console.log('[Deepgram] API Key present:', !!this.apiKey, 'length:', this.apiKey?.length)
-      this.ws = new WebSocket(wsUrl, ['token', this.apiKey])
+      this.ws = new WebSocket(wsUrl)
 
       this.ws.onopen = () => {
         this.sendSettings()
