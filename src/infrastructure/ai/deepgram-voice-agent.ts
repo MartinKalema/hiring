@@ -64,7 +64,10 @@ interface SettingsMessage {
   }
   agent: {
     listen: {
-      model: string
+      provider: {
+        type: string
+        model: string
+      }
     }
     think: {
       provider: {
@@ -74,7 +77,10 @@ interface SettingsMessage {
       prompt: string  // V1 uses 'prompt' instead of 'instructions'
     }
     speak: {
-      model: string
+      provider: {
+        type: string
+        model: string
+      }
     }
   }
   context?: {
@@ -199,7 +205,10 @@ export class DeepgramVoiceAgent {
       },
       agent: {
         listen: {
-          model: this.options.listenModel || 'nova-2'
+          provider: {
+            type: 'deepgram',
+            model: this.options.listenModel || 'nova-2'
+          }
         },
         think: {
           provider: {
@@ -209,7 +218,10 @@ export class DeepgramVoiceAgent {
           prompt: this.options.instructions  // V1 API uses 'prompt' instead of 'instructions'
         },
         speak: {
-          model: this.options.voice || 'aura-asteria-en'
+          provider: {
+            type: 'deepgram',
+            model: this.options.voice || 'aura-asteria-en'
+          }
         }
       }
     }
