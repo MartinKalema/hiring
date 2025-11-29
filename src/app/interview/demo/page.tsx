@@ -232,7 +232,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
       const data = await response.json()
 
-      // Update voice config
+      // Update voice config state for UI
       setVoiceConfig({
         apiKey: data.apiKey,
         instructions: data.instructions,
@@ -241,11 +241,14 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         thinkProvider: data.config.thinkProvider,
       })
 
-      // Small delay for state to update
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // Connect to Deepgram Voice Agent
-      await voiceAgent.connect()
+      // Connect to Deepgram Voice Agent - pass config directly to avoid stale closure
+      await voiceAgent.connect({
+        apiKey: data.apiKey,
+        instructions: data.instructions,
+        voice: data.config.voice,
+        thinkModel: data.config.thinkModel,
+        thinkProvider: data.config.thinkProvider,
+      })
       setStage('active')
     } catch (error) {
       console.error('Failed to start demo interview:', error)
