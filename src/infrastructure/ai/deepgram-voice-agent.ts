@@ -81,11 +81,6 @@ interface SettingsMessage {
   }
 }
 
-interface AudioMessage {
-  type: 'Audio'
-  audio: string  // base64 encoded
-}
-
 interface InjectMessage {
   type: 'Inject'
   text: string
@@ -260,12 +255,10 @@ export class DeepgramVoiceAgent {
 
       const inputData = event.inputBuffer.getChannelData(0)
       const int16Data = this.floatTo16BitPCM(inputData)
-      const base64Audio = this.arrayBufferToBase64(int16Data.buffer as ArrayBuffer)
 
-      this.ws.send(JSON.stringify({
-        type: 'Audio',
-        audio: base64Audio
-      }))
+      // Send raw binary audio data (not JSON-wrapped)
+      // Deepgram Voice Agent expects binary messages for audio
+      this.ws.send(int16Data.buffer)
     }
 
     this.mediaStreamSource.connect(this.audioProcessor)
