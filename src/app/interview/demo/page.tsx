@@ -568,7 +568,7 @@ export default function DemoInterviewPage() {
       {/* Top - AI transcript text */}
       <div className="flex-shrink-0 p-6 md:p-8 pt-12">
         <div className="max-w-4xl mx-auto">
-          <p className="text-lg md:text-xl leading-relaxed text-white animate-fade-in">
+          <p className="text-lg md:text-xl leading-relaxed text-gray-800 animate-fade-in">
             {currentAgentText || 'Welcome to your interview...'}
           </p>
         </div>
@@ -629,7 +629,7 @@ export default function DemoInterviewPage() {
 
           {/* State indicator text */}
           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2">
-            <span className="text-sm text-white/60">
+            <span className="text-sm text-gray-600">
               {isSpeaking ? 'Speaking...' : 'Listening...'}
             </span>
           </div>
@@ -641,9 +641,9 @@ export default function DemoInterviewPage() {
         <div className="max-w-4xl mx-auto">
           {/* Playback controls */}
           <div className="flex justify-center mb-6">
-            <div className="video-controls flex items-center gap-4 px-6 py-3">
+            <div className="flex items-center gap-4 px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200">
               {/* Timer */}
-              <span className="text-sm text-white/60">
+              <span className="text-sm text-gray-600">
                 {formatTime(elapsedTime)} / {formatTime(interviewConfig.maxDuration * 60)}
               </span>
             </div>
@@ -653,17 +653,17 @@ export default function DemoInterviewPage() {
           <div className="flex items-center justify-between">
             {/* Branding */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                 </svg>
               </div>
-              <span className="text-sm text-white/60">
+              <span className="text-sm text-gray-600">
                 AIR
               </span>
-              <span className="ml-2 px-2 py-0.5 bg-amber-500/20 text-amber-300 text-xs rounded-full">Demo</span>
-              <span className="text-white/40 mx-2">|</span>
-              <span className="text-sm text-white/60">
+              <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">Demo</span>
+              <span className="text-gray-400 mx-2">|</span>
+              <span className="text-sm text-gray-600">
                 {candidateInfo.firstName} x {interviewConfig.companyName}
               </span>
             </div>
