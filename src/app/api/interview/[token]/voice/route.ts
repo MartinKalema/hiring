@@ -148,7 +148,7 @@ Start by greeting ${candidateFirstName}, introducing yourself as AIR, explaining
       instructions,
       config: {
         voice: (config.aiVoice as string) || 'aura-asteria-en',
-        thinkModel: 'claude-3-5-sonnet-20241022',
+        thinkModel: 'claude-sonnet-4-20250514',
         thinkProvider: 'anthropic',
         maxDuration,
         language: (config.language as string) || 'en',

@@ -127,8 +127,8 @@ export class DeepgramVoiceAgent {
       // Initialize audio context
       this.audioContext = new AudioContext({ sampleRate: 16000 })
 
-      // Connect to Deepgram Voice Agent WebSocket
-      const wsUrl = `wss://agent.deepgram.com/agent?model=voice-agent`
+      // Connect to Deepgram Voice Agent WebSocket with API key in URL
+      const wsUrl = `wss://agent.deepgram.com/agent?authorization=Token ${this.apiKey}`
       this.ws = new WebSocket(wsUrl)
 
       this.ws.onopen = () => {
@@ -173,7 +173,7 @@ export class DeepgramVoiceAgent {
           provider: {
             type: this.options.thinkProvider || 'anthropic'
           },
-          model: this.options.thinkModel || 'claude-3-haiku-20240307',
+          model: this.options.thinkModel || 'claude-sonnet-4-20250514',
           instructions: this.options.instructions
         },
         speak: {
