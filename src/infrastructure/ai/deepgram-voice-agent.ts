@@ -1,0 +1,416 @@
+/**
+ * Deepgram Voice Agent Client
+ *
+ * Implements real-time conversational AI using Deepgram's Voice Agent API.
+ * Handles: STT (Nova-2) + LLM (Claude) + TTS (Aura) in a single WebSocket connection.
+ *
+ * Reference: https://developers.deepgram.com/docs/voice-agent
+ */
+
+export type AgentState =
+  | 'idle'
+  | 'listening'
+  | 'thinking'
+  | 'speaking'
+
+export type ConnectionState =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'error'
+
+export interface AgentOptions {
+  // System prompt for the AI interviewer
+  instructions: string
+
+  // Speech-to-text model
+  listenModel?: string  // default: 'nova-2'
+
+  // Text-to-speech voice
+  voice?: string  // default: 'aura-asteria-en'
+
+  // LLM settings
+  thinkProvider?: string  // 'anthropic', 'openai', 'groq'
+  thinkModel?: string    // 'claude-3-haiku-20240307', 'gpt-4o-mini', etc.
+
+  // Conversation context (for continuing conversations)
+  context?: Array<{ role: 'user' | 'assistant', content: string }>
+}
+
+export interface AgentCallbacks {
+  onConnectionStateChange?: (state: ConnectionState) => void
+  onAgentStateChange?: (state: AgentState) => void
+  onUserTranscript?: (transcript: string, isFinal: boolean) => void
+  onAgentUtterance?: (text: string) => void
+  onError?: (error: Error) => void
+  onAudioPlaybackStart?: () => void
+  onAudioPlaybackEnd?: () => void
+}
+
+// Message types for Voice Agent WebSocket
+interface SettingsMessage {
+  type: 'Settings'
+  agent: {
+    listen: {
+      model: string
+    }
+    think: {
+      provider: {
+        type: string
+      }
+      model: string
+      instructions: string
+    }
+    speak: {
+      model: string
+    }
+  }
+  context?: {
+    messages: Array<{ role: string, content: string }>
+  }
+}
+
+interface AudioMessage {
+  type: 'Audio'
+  audio: string  // base64 encoded
+}
+
+interface InjectMessage {
+  type: 'Inject'
+  text: string
+}
+
+export class DeepgramVoiceAgent {
+  private ws: WebSocket | null = null
+  private audioContext: AudioContext | null = null
+  private mediaStream: MediaStream | null = null
+  private audioProcessor: ScriptProcessorNode | null = null
+  private mediaStreamSource: MediaStreamAudioSourceNode | null = null
+  private audioQueue: AudioBuffer[] = []
+  private isPlaying = false
+
+  private connectionState: ConnectionState = 'disconnected'
+  private agentState: AgentState = 'idle'
+
+  private options: AgentOptions
+  private callbacks: AgentCallbacks
+  private apiKey: string
+
+  constructor(
+    apiKey: string,
+    options: AgentOptions,
+    callbacks: AgentCallbacks = {}
+  ) {
+    this.apiKey = apiKey
+    this.options = options
+    this.callbacks = callbacks
+  }
+
+  async connect(): Promise<void> {
+    if (this.connectionState === 'connected' || this.connectionState === 'connecting') {
+      return
+    }
+
+    this.setConnectionState('connecting')
+
+    try {
+      // Request microphone access
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true,
+        }
+      })
+
+      // Initialize audio context
+      this.audioContext = new AudioContext({ sampleRate: 16000 })
+
+      // Connect to Deepgram Voice Agent WebSocket
+      const wsUrl = `wss://agent.deepgram.com/agent?model=voice-agent`
+      this.ws = new WebSocket(wsUrl)
+
+      this.ws.onopen = () => {
+        this.sendSettings()
+        this.startAudioCapture()
+        this.setConnectionState('connected')
+        this.setAgentState('listening')
+      }
+
+      this.ws.onmessage = (event) => {
+        this.handleMessage(event.data)
+      }
+
+      this.ws.onerror = (error) => {
+        console.error('WebSocket error:', error)
+        this.callbacks.onError?.(new Error('WebSocket connection failed'))
+        this.setConnectionState('error')
+      }
+
+      this.ws.onclose = () => {
+        this.setConnectionState('disconnected')
+        this.cleanup()
+      }
+
+    } catch (error) {
+      this.setConnectionState('error')
+      this.callbacks.onError?.(error as Error)
+      throw error
+    }
+  }
+
+  private sendSettings(): void {
+    if (!this.ws) return
+
+    const settings: SettingsMessage = {
+      type: 'Settings',
+      agent: {
+        listen: {
+          model: this.options.listenModel || 'nova-2'
+        },
+        think: {
+          provider: {
+            type: this.options.thinkProvider || 'anthropic'
+          },
+          model: this.options.thinkModel || 'claude-3-haiku-20240307',
+          instructions: this.options.instructions
+        },
+        speak: {
+          model: this.options.voice || 'aura-asteria-en'
+        }
+      }
+    }
+
+    if (this.options.context && this.options.context.length > 0) {
+      settings.context = {
+        messages: this.options.context.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
+      }
+    }
+
+    this.ws.send(JSON.stringify(settings))
+  }
+
+  private startAudioCapture(): void {
+    if (!this.audioContext || !this.mediaStream) return
+
+    this.mediaStreamSource = this.audioContext.createMediaStreamSource(this.mediaStream)
+    this.audioProcessor = this.audioContext.createScriptProcessor(4096, 1, 1)
+
+    this.audioProcessor.onaudioprocess = (event) => {
+      if (this.ws?.readyState !== WebSocket.OPEN) return
+      if (this.agentState === 'speaking') return  // Don't send audio while agent is speaking
+
+      const inputData = event.inputBuffer.getChannelData(0)
+      const int16Data = this.floatTo16BitPCM(inputData)
+      const base64Audio = this.arrayBufferToBase64(int16Data.buffer as ArrayBuffer)
+
+      this.ws.send(JSON.stringify({
+        type: 'Audio',
+        audio: base64Audio
+      }))
+    }
+
+    this.mediaStreamSource.connect(this.audioProcessor)
+    this.audioProcessor.connect(this.audioContext.destination)
+  }
+
+  private handleMessage(data: string): void {
+    try {
+      const message = JSON.parse(data)
+
+      switch (message.type) {
+        case 'UserStartedSpeaking':
+          this.setAgentState('listening')
+          break
+
+        case 'UserStoppedSpeaking':
+          // User finished speaking, agent will process
+          break
+
+        case 'Transcript':
+          // Real-time transcript of user speech
+          const transcript = message.transcript || ''
+          const isFinal = message.is_final || false
+          this.callbacks.onUserTranscript?.(transcript, isFinal)
+          break
+
+        case 'AgentStartedSpeaking':
+          this.setAgentState('speaking')
+          this.callbacks.onAudioPlaybackStart?.()
+          break
+
+        case 'AgentStoppedSpeaking':
+          this.setAgentState('listening')
+          this.callbacks.onAudioPlaybackEnd?.()
+          break
+
+        case 'AgentAudio':
+          // Agent audio response (base64 encoded)
+          this.playAudio(message.audio)
+          break
+
+        case 'AgentThinking':
+          this.setAgentState('thinking')
+          break
+
+        case 'AgentText':
+        case 'AgentUtterance':
+          // Text of what the agent is saying
+          this.callbacks.onAgentUtterance?.(message.text || message.content || '')
+          break
+
+        case 'Error':
+          this.callbacks.onError?.(new Error(message.message || 'Unknown error'))
+          break
+
+        default:
+          console.log('Unknown message type:', message.type, message)
+      }
+    } catch (error) {
+      console.error('Error parsing message:', error)
+    }
+  }
+
+  private async playAudio(base64Audio: string): Promise<void> {
+    if (!this.audioContext) return
+
+    try {
+      const audioData = this.base64ToArrayBuffer(base64Audio)
+      const audioBuffer = await this.audioContext.decodeAudioData(audioData)
+
+      this.audioQueue.push(audioBuffer)
+
+      if (!this.isPlaying) {
+        this.playNextInQueue()
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error)
+    }
+  }
+
+  private playNextInQueue(): void {
+    if (this.audioQueue.length === 0 || !this.audioContext) {
+      this.isPlaying = false
+      return
+    }
+
+    this.isPlaying = true
+    const audioBuffer = this.audioQueue.shift()!
+
+    const source = this.audioContext.createBufferSource()
+    source.buffer = audioBuffer
+    source.connect(this.audioContext.destination)
+    source.onended = () => this.playNextInQueue()
+    source.start()
+  }
+
+  // Inject a text message to the agent (as if user said it)
+  injectMessage(text: string): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
+
+    const message: InjectMessage = {
+      type: 'Inject',
+      text
+    }
+    this.ws.send(JSON.stringify(message))
+  }
+
+  // Update the agent's instructions mid-conversation
+  updateInstructions(instructions: string): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
+
+    this.ws.send(JSON.stringify({
+      type: 'UpdateInstructions',
+      instructions
+    }))
+  }
+
+  // Interrupt the agent while it's speaking
+  interrupt(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
+
+    this.ws.send(JSON.stringify({ type: 'Interrupt' }))
+    this.audioQueue = []  // Clear audio queue
+    this.isPlaying = false
+  }
+
+  disconnect(): void {
+    if (this.ws) {
+      this.ws.close()
+      this.ws = null
+    }
+    this.cleanup()
+  }
+
+  private cleanup(): void {
+    if (this.audioProcessor) {
+      this.audioProcessor.disconnect()
+      this.audioProcessor = null
+    }
+    if (this.mediaStreamSource) {
+      this.mediaStreamSource.disconnect()
+      this.mediaStreamSource = null
+    }
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(track => track.stop())
+      this.mediaStream = null
+    }
+    if (this.audioContext) {
+      this.audioContext.close()
+      this.audioContext = null
+    }
+    this.audioQueue = []
+    this.isPlaying = false
+  }
+
+  private setConnectionState(state: ConnectionState): void {
+    this.connectionState = state
+    this.callbacks.onConnectionStateChange?.(state)
+  }
+
+  private setAgentState(state: AgentState): void {
+    this.agentState = state
+    this.callbacks.onAgentStateChange?.(state)
+  }
+
+  getConnectionState(): ConnectionState {
+    return this.connectionState
+  }
+
+  getAgentState(): AgentState {
+    return this.agentState
+  }
+
+  // Utility functions
+  private floatTo16BitPCM(input: Float32Array): Int16Array {
+    const output = new Int16Array(input.length)
+    for (let i = 0; i < input.length; i++) {
+      const s = Math.max(-1, Math.min(1, input[i]))
+      output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF
+    }
+    return output
+  }
+
+  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer)
+    let binary = ''
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    return btoa(binary)
+  }
+
+  private base64ToArrayBuffer(base64: string): ArrayBuffer {
+    const binaryString = atob(base64)
+    const len = binaryString.length
+    const bytes = new Uint8Array(len)
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
+    }
+    return bytes.buffer
+  }
+}
