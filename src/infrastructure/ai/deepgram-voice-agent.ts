@@ -97,8 +97,9 @@ export class DeepgramVoiceAgent {
   private mediaStream: MediaStream | null = null
   private audioProcessor: ScriptProcessorNode | null = null
   private mediaStreamSource: MediaStreamAudioSourceNode | null = null
-  private audioQueue: AudioBuffer[] = []
+  private audioQueue: ArrayBuffer[] = []
   private isPlaying = false
+  private keepAliveInterval: NodeJS.Timeout | null = null
 
   private connectionState: ConnectionState = 'disconnected'
   private agentState: AgentState = 'idle'
@@ -106,6 +107,9 @@ export class DeepgramVoiceAgent {
   private options: AgentOptions
   private callbacks: AgentCallbacks
   private apiKey: string
+
+  // Audio playback settings - match what we request from Deepgram
+  private readonly OUTPUT_SAMPLE_RATE = 24000
 
   constructor(
     apiKey: string,
@@ -145,6 +149,7 @@ export class DeepgramVoiceAgent {
       this.ws.onopen = () => {
         this.sendSettings()
         this.startAudioCapture()
+        this.startKeepAlive()
         this.setConnectionState('connected')
         this.setAgentState('listening')
       }
@@ -183,8 +188,8 @@ export class DeepgramVoiceAgent {
         },
         output: {
           encoding: 'linear16',
-          sample_rate: 24000,
-          container: 'wav'
+          sample_rate: this.OUTPUT_SAMPLE_RATE,
+          container: 'wav'  // WAV container required for browser playback
         }
       },
       agent: {
@@ -213,7 +218,25 @@ export class DeepgramVoiceAgent {
       }
     }
 
+    console.log('[Deepgram] Sending settings:', JSON.stringify(settings, null, 2))
     this.ws.send(JSON.stringify(settings))
+  }
+
+  // Keep-alive to maintain WebSocket connection (required every 5 seconds per Deepgram docs)
+  private startKeepAlive(): void {
+    this.stopKeepAlive()
+    this.keepAliveInterval = setInterval(() => {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({ type: 'KeepAlive' }))
+      }
+    }, 5000)
+  }
+
+  private stopKeepAlive(): void {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval)
+      this.keepAliveInterval = null
+    }
   }
 
   private startAudioCapture(): void {
@@ -245,89 +268,147 @@ export class DeepgramVoiceAgent {
       const message = JSON.parse(data)
 
       switch (message.type) {
+        case 'SettingsApplied':
+          console.log('[Deepgram] Settings applied successfully')
+          break
+
         case 'UserStartedSpeaking':
+          console.log('[Deepgram] User started speaking')
           this.setAgentState('listening')
           break
 
         case 'UserStoppedSpeaking':
+          console.log('[Deepgram] User stopped speaking')
           // User finished speaking, agent will process
           break
 
+        case 'ConversationText':
+          // Transcript of user or agent speech
+          const role = message.role // 'user' or 'assistant'
+          const content = message.content || ''
+          if (role === 'user') {
+            this.callbacks.onUserTranscript?.(content, true)
+          } else if (role === 'assistant') {
+            this.callbacks.onAgentUtterance?.(content)
+          }
+          break
+
         case 'Transcript':
-          // Real-time transcript of user speech
-          const transcript = message.transcript || ''
-          const isFinal = message.is_final || false
-          this.callbacks.onUserTranscript?.(transcript, isFinal)
+          // Real-time transcript of user speech (interim results)
+          const transcript = message.transcript || message.channel?.alternatives?.[0]?.transcript || ''
+          const isFinal = message.is_final || message.speech_final || false
+          if (transcript) {
+            this.callbacks.onUserTranscript?.(transcript, isFinal)
+          }
           break
 
         case 'AgentStartedSpeaking':
+          console.log('[Deepgram] Agent started speaking')
           this.setAgentState('speaking')
           this.callbacks.onAudioPlaybackStart?.()
           break
 
         case 'AgentStoppedSpeaking':
+          console.log('[Deepgram] Agent stopped speaking')
           this.setAgentState('listening')
           this.callbacks.onAudioPlaybackEnd?.()
           break
 
+        case 'AgentAudioDone':
+          console.log('[Deepgram] Agent audio done')
+          break
+
         case 'AgentAudio':
-          // Agent audio response (base64 encoded)
-          this.playAudio(message.audio)
+          // Agent audio response (base64 encoded WAV)
+          if (message.audio) {
+            this.playAudio(message.audio)
+          }
           break
 
         case 'AgentThinking':
+          console.log('[Deepgram] Agent thinking')
           this.setAgentState('thinking')
           break
 
         case 'AgentText':
         case 'AgentUtterance':
           // Text of what the agent is saying
-          this.callbacks.onAgentUtterance?.(message.text || message.content || '')
+          const text = message.text || message.content || ''
+          if (text) {
+            console.log('[Deepgram] Agent utterance:', text.substring(0, 50) + '...')
+            this.callbacks.onAgentUtterance?.(text)
+          }
+          break
+
+        case 'Welcome':
+          console.log('[Deepgram] Connected to Voice Agent')
           break
 
         case 'Error':
-          this.callbacks.onError?.(new Error(message.message || 'Unknown error'))
+          console.error('[Deepgram] Error:', message.message || message.description)
+          this.callbacks.onError?.(new Error(message.message || message.description || 'Unknown error'))
+          break
+
+        case 'Warning':
+          console.warn('[Deepgram] Warning:', message.message || message.description)
           break
 
         default:
-          console.log('Unknown message type:', message.type, message)
+          console.log('[Deepgram] Message:', message.type, message)
       }
     } catch (error) {
-      console.error('Error parsing message:', error)
+      console.error('[Deepgram] Error parsing message:', error)
     }
   }
 
   private async playAudio(base64Audio: string): Promise<void> {
-    if (!this.audioContext) return
+    if (!this.audioContext) {
+      console.warn('[Deepgram] No audio context for playback')
+      return
+    }
 
     try {
       const audioData = this.base64ToArrayBuffer(base64Audio)
-      const audioBuffer = await this.audioContext.decodeAudioData(audioData)
 
-      this.audioQueue.push(audioBuffer)
+      // Queue the audio data for playback
+      this.audioQueue.push(audioData)
 
       if (!this.isPlaying) {
         this.playNextInQueue()
       }
     } catch (error) {
-      console.error('Error playing audio:', error)
+      console.error('[Deepgram] Error queuing audio:', error)
     }
   }
 
-  private playNextInQueue(): void {
+  private async playNextInQueue(): Promise<void> {
     if (this.audioQueue.length === 0 || !this.audioContext) {
       this.isPlaying = false
       return
     }
 
     this.isPlaying = true
-    const audioBuffer = this.audioQueue.shift()!
+    const audioData = this.audioQueue.shift()!
 
-    const source = this.audioContext.createBufferSource()
-    source.buffer = audioBuffer
-    source.connect(this.audioContext.destination)
-    source.onended = () => this.playNextInQueue()
-    source.start()
+    try {
+      // Resume audio context if suspended (required by browser autoplay policies)
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume()
+      }
+
+      // Decode the WAV audio data
+      const audioBuffer = await this.audioContext.decodeAudioData(audioData.slice(0))
+
+      const source = this.audioContext.createBufferSource()
+      source.buffer = audioBuffer
+      source.connect(this.audioContext.destination)
+      source.onended = () => this.playNextInQueue()
+      source.start()
+    } catch (error) {
+      console.error('[Deepgram] Error playing audio:', error)
+      // Try next audio chunk
+      this.playNextInQueue()
+    }
   }
 
   // Inject a text message to the agent (as if user said it)
@@ -369,6 +450,7 @@ export class DeepgramVoiceAgent {
   }
 
   private cleanup(): void {
+    this.stopKeepAlive()
     if (this.audioProcessor) {
       this.audioProcessor.disconnect()
       this.audioProcessor = null

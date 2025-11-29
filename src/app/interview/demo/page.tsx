@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useVoiceAgent } from '@/presentation/hooks/use-voice-agent'
 
 type InterviewStage = 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 
@@ -8,6 +9,14 @@ interface CandidateInfo {
   firstName: string
   lastName: string
   email: string
+}
+
+interface VoiceConfig {
+  apiKey: string
+  instructions: string
+  voice: string
+  thinkModel: string
+  thinkProvider: string
 }
 
 // Decorative photos for the welcome screen
@@ -18,13 +27,6 @@ const DECORATIVE_PHOTOS = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
-]
-
-// Demo transcript for the active interview simulation
-const DEMO_TRANSCRIPT = [
-  { speaker: 'ai' as const, text: "Hello! Welcome to your interview. I'm AIR, the AI interviewer. I'm excited to learn more about your experience today. Before we begin, could you tell me a bit about yourself and what drew you to this opportunity?", delay: 0 },
-  { speaker: 'user' as const, text: "Thank you for having me! I've been working as a software developer for about 4 years, and I'm really passionate about building products that make a difference.", delay: 5000 },
-  { speaker: 'ai' as const, text: "That's wonderful! Four years of experience sounds great. Can you walk me through a specific project where you felt you made a significant impact? I'd love to hear about the challenges you faced.", delay: 8000 },
 ]
 
 export default function DemoInterviewPage() {
@@ -39,11 +41,11 @@ export default function DemoInterviewPage() {
   const [selectedCamera, setSelectedCamera] = useState<string>('')
   const [selectedMic, setSelectedMic] = useState<string>('')
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
-  const [transcript, setTranscript] = useState<Array<{ speaker: 'ai' | 'user', text: string }>>([])
+  const [transcript, setTranscript] = useState<Array<{ speaker: 'ai' | 'user', text: string, timestamp: number }>>([])
   const [currentAgentText, setCurrentAgentText] = useState('')
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
-  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
@@ -56,6 +58,60 @@ export default function DemoInterviewPage() {
     maxDuration: 9,
     language: 'English',
   }
+
+  // Build instructions for the AI interviewer
+  const buildInstructions = useCallback(() => {
+    return `You are AIR, an AI interviewer conducting a demo interview for a ${interviewConfig.jobTitle} position at ${interviewConfig.companyName}.
+
+Your role:
+- Conduct a professional, conversational interview
+- Ask behavioral and technical questions relevant to the role
+- When answers are vague, probe deeper using the STAR method (Situation, Task, Action, Result)
+- Be warm, encouraging, but professional
+- Listen carefully and ask relevant follow-up questions
+
+Interview structure:
+1. Start with a warm greeting, introduce yourself as AIR
+2. Ask about their background and interest in the role
+3. Ask 2-3 behavioral questions about relevant competencies
+4. For each answer, probe deeper if needed
+5. Close with thanks
+
+Candidate name: ${candidateInfo.firstName} ${candidateInfo.lastName}
+Maximum duration: ${interviewConfig.maxDuration} minutes
+
+Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and asking if they're ready to get started.`
+  }, [candidateInfo.firstName, candidateInfo.lastName])
+
+  // Voice agent hook - connected to real Deepgram API
+  const voiceAgent = useVoiceAgent({
+    apiKey: voiceConfig?.apiKey || '',
+    instructions: voiceConfig?.instructions || buildInstructions(),
+    voice: voiceConfig?.voice || 'aura-asteria-en',
+    thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
+    thinkModel: voiceConfig?.thinkModel || 'claude-sonnet-4-20250514',
+    onTranscript: (text, isFinal) => {
+      if (isFinal && text.trim()) {
+        setTranscript(prev => [...prev, { speaker: 'user', text, timestamp: elapsedTime }])
+      }
+    },
+    onAgentUtterance: (text) => {
+      setCurrentAgentText(text)
+      if (text.trim()) {
+        setTranscript(prev => {
+          // Avoid duplicates
+          const lastEntry = prev[prev.length - 1]
+          if (lastEntry?.speaker === 'ai' && lastEntry?.text === text) {
+            return prev
+          }
+          return [...prev, { speaker: 'ai', text, timestamp: elapsedTime }]
+        })
+      }
+    },
+    onError: (error) => {
+      console.error('Demo interview error:', error)
+    },
+  })
 
   // Enumerate available devices
   useEffect(() => {
@@ -123,7 +179,14 @@ export default function DemoInterviewPage() {
   useEffect(() => {
     if (stage === 'active') {
       timerRef.current = setInterval(() => {
-        setElapsedTime(prev => prev + 1)
+        setElapsedTime(prev => {
+          const newTime = prev + 1
+          // Check for time limit
+          if (newTime >= interviewConfig.maxDuration * 60) {
+            handleEndInterview()
+          }
+          return newTime
+        })
       }, 1000)
     }
 
@@ -132,35 +195,7 @@ export default function DemoInterviewPage() {
         clearInterval(timerRef.current)
       }
     }
-  }, [stage])
-
-  // Demo: Simulate AI speaking
-  useEffect(() => {
-    if (stage === 'active') {
-      // Start with first message
-      setCurrentAgentText(DEMO_TRANSCRIPT[0].text)
-      setIsSpeaking(true)
-      setTranscript([{ speaker: 'ai', text: DEMO_TRANSCRIPT[0].text }])
-
-      // Simulate the conversation
-      DEMO_TRANSCRIPT.slice(1).forEach((item, index) => {
-        setTimeout(() => {
-          if (item.speaker === 'ai') {
-            setIsSpeaking(true)
-            setCurrentAgentText(item.text)
-          } else {
-            setIsSpeaking(false)
-          }
-          setTranscript(prev => [...prev, { speaker: item.speaker, text: item.text }])
-        }, item.delay)
-      })
-
-      // Stop speaking after last message
-      setTimeout(() => {
-        setIsSpeaking(false)
-      }, 12000)
-    }
-  }, [stage])
+  }, [stage, interviewConfig.maxDuration])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -175,12 +210,53 @@ export default function DemoInterviewPage() {
 
   const handleStartInterview = async () => {
     setStage('joining')
-    // Simulate connection delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setStage('active')
+
+    try {
+      // Fetch voice configuration from demo API
+      const response = await fetch('/api/interview/demo/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidateFirstName: candidateInfo.firstName,
+          candidateLastName: candidateInfo.lastName,
+          candidateEmail: candidateInfo.email,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        console.error('Failed to get voice config:', data.error)
+        setStage('setup')
+        return
+      }
+
+      const data = await response.json()
+
+      // Update voice config
+      setVoiceConfig({
+        apiKey: data.apiKey,
+        instructions: data.instructions,
+        voice: data.config.voice,
+        thinkModel: data.config.thinkModel,
+        thinkProvider: data.config.thinkProvider,
+      })
+
+      // Small delay for state to update
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Connect to Deepgram Voice Agent
+      await voiceAgent.connect()
+      setStage('active')
+    } catch (error) {
+      console.error('Failed to start demo interview:', error)
+      setStage('setup')
+    }
   }
 
   const handleEndInterview = () => {
+    // Disconnect from voice agent
+    voiceAgent.disconnect()
+
     setShowCompletionModal(true)
     setTimeout(() => {
       setStage('completed')
@@ -205,7 +281,7 @@ export default function DemoInterviewPage() {
         {/* Header */}
         <header className="interview-header sticky top-10 z-10 px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
               </svg>
@@ -237,8 +313,8 @@ export default function DemoInterviewPage() {
                 <img src={DECORATIVE_PHOTOS[2]} alt="" className="w-full h-full object-cover" />
               </div>
 
-              <div className="absolute bottom-1/4 left-1/4 w-32 h-32 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 shadow-lg flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-300/50 to-purple-500/50 flex items-center justify-center">
+              <div className="absolute bottom-1/4 left-1/4 w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 shadow-lg flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-300/50 to-cyan-500/50 flex items-center justify-center">
                   <div className="w-16 h-16 rounded-full bg-white/20" />
                 </div>
               </div>
@@ -343,7 +419,7 @@ export default function DemoInterviewPage() {
         <DemoBanner />
         <header className="interview-header sticky top-10 z-10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
               </svg>
@@ -549,8 +625,8 @@ export default function DemoInterviewPage() {
         <DemoBanner />
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-6 relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 animate-pulse" />
-            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-violet-300 to-purple-500" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 animate-pulse" />
+            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-300 to-cyan-500" />
           </div>
           <p className="text-xl font-medium text-gray-900">Joining your AI Interview...</p>
           <p className="text-gray-500 mt-2">Please wait while we connect you with AIR</p>
@@ -599,8 +675,8 @@ export default function DemoInterviewPage() {
 
           {/* Main orb */}
           <div
-            className={`relative rounded-full bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600 w-48 h-48 ${
-              isSpeaking ? 'ai-orb-speaking' : 'ai-orb'
+            className={`relative rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-600 w-48 h-48 ${
+              voiceAgent.isSpeaking ? 'ai-orb-speaking' : 'ai-orb'
             }`}
           >
             {/* Inner glow */}
@@ -608,7 +684,7 @@ export default function DemoInterviewPage() {
 
             {/* Center pattern */}
             <div className="absolute inset-0 flex items-center justify-center">
-              {isSpeaking ? (
+              {voiceAgent.isSpeaking ? (
                 <div className="speaking-wave-container">
                   <div className="speaking-wave-bar" />
                   <div className="speaking-wave-bar" />
@@ -630,7 +706,7 @@ export default function DemoInterviewPage() {
           {/* State indicator text */}
           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2">
             <span className="text-sm text-gray-600">
-              {isSpeaking ? 'Speaking...' : 'Listening...'}
+              {voiceAgent.isSpeaking ? 'Speaking...' : voiceAgent.isThinking ? 'Thinking...' : 'Listening...'}
             </span>
           </div>
         </div>
