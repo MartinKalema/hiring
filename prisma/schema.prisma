@@ -1,0 +1,183 @@
+// Prisma Schema for AI Interview Platform (AIR)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+// =====================================================
+// ORGANIZATIONS (synced from Clerk)
+// =====================================================
+
+model Organization {
+  id        String   @id // Clerk organization ID
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  interviewTemplates InterviewTemplate[]
+  candidates         Candidate[]
+
+  @@map("organizations")
+}
+
+// =====================================================
+// INTERVIEW TEMPLATES
+// Reusable interview configurations created by recruiters
+// =====================================================
+
+model InterviewTemplate {
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  createdBy      String  @map("created_by") // Clerk user ID
+
+  // Job information
+  jobRequisitionId String? @map("job_requisition_id")
+  name             String
+  jobTitle         String  @map("job_title")
+  jobDescription   String  @map("job_description") @db.Text
+  companyName      String  @map("company_name")
+
+  // What to assess (stored as JSON)
+  competenciesToAssess Json @default("[]") @map("competencies_to_assess")
+  mustAskQuestions     Json @default("[]") @map("must_ask_questions")
+
+  // Configuration
+  config Json @default("{\"maxDurationMinutes\": 9, \"depthLevel\": \"standard\", \"maxProbesPerCompetency\": 2, \"aiVoice\": \"aura-asteria-en\", \"language\": \"en-US\", \"videoRequired\": true}")
+
+  // Status: draft, active, paused, completed, archived
+  status String @default("draft")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  sessions     InterviewSession[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("interview_templates")
+}
+
+// =====================================================
+// CANDIDATES
+// People being interviewed
+// =====================================================
+
+model Candidate {
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+
+  // Basic info
+  firstName String  @map("first_name")
+  lastName  String  @map("last_name")
+  email     String
+  phone     String?
+
+  // Additional data
+  resumeUrl   String? @map("resume_url")
+  linkedinUrl String? @map("linkedin_url")
+  metadata    Json    @default("{}")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  sessions     InterviewSession[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([email])
+  @@map("candidates")
+}
+
+// =====================================================
+// INTERVIEW SESSIONS
+// Individual interview instances with candidates
+// =====================================================
+
+model InterviewSession {
+  id          String  @id @default(uuid())
+  templateId  String  @map("template_id")
+  candidateId String? @map("candidate_id")
+
+  // Unique token for interview link
+  token String @unique
+
+  // Status: invited, started, in_progress, completed, abandoned, expired, technical_error
+  status String @default("invited")
+
+  // Competency tracking (JSON)
+  competencyCoverage      Json @default("[]") @map("competency_coverage")
+  currentCompetencyIndex  Int  @default(0) @map("current_competency_index")
+
+  // Conversation history (JSON array of turns)
+  conversationHistory Json @default("[]") @map("conversation_history")
+
+  // Metrics
+  metrics Json @default("{\"totalDurationMs\": 0, \"candidateSpeakingTimeMs\": 0, \"aiSpeakingTimeMs\": 0, \"turnCount\": 0}")
+
+  // Recordings
+  videoUrl       String? @map("video_url")
+  audioUrl       String? @map("audio_url")
+  fullTranscript String? @map("full_transcript") @db.Text
+
+  // Timestamps
+  invitedAt   DateTime  @default(now()) @map("invited_at")
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  expiresAt   DateTime  @map("expires_at")
+
+  // Relations
+  template  InterviewTemplate  @relation(fields: [templateId], references: [id])
+  candidate Candidate?         @relation(fields: [candidateId], references: [id])
+  summary   InterviewSummary?
+
+  @@index([templateId])
+  @@index([candidateId])
+  @@index([token])
+  @@index([status])
+  @@map("interview_sessions")
+}
+
+// =====================================================
+// INTERVIEW SUMMARIES
+// AI-generated summaries after interview completion
+// =====================================================
+
+model InterviewSummary {
+  id        String @id @default(uuid())
+  sessionId String @unique @map("session_id")
+
+  // Summary content
+  summaryText     String? @map("summary_text") @db.Text
+  keyStrengths    Json    @default("[]") @map("key_strengths")
+  areasOfConcern  Json    @default("[]") @map("areas_of_concern")
+  skillsMentioned Json    @default("[]") @map("skills_mentioned")
+
+  // Scores per competency
+  competencyScores Json @default("[]") @map("competency_scores")
+
+  // Overall recommendation: strong_yes, yes, maybe, no, strong_no
+  recommendation           String?
+  recommendationConfidence Float?  @map("recommendation_confidence")
+  recommendationReasoning  String? @map("recommendation_reasoning") @db.Text
+
+  // Generated timestamp
+  generatedAt DateTime @default(now()) @map("generated_at")
+
+  // Relations
+  session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("interview_summaries")
+}
