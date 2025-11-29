@@ -46,19 +46,19 @@ export function AIOrb({ state, size = 'lg' }: AIORbProps) {
       <div className="relative">
         {/* Outer glow ring */}
         <div
-          className={`absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-purple-500 opacity-20 blur-xl ai-orb-ring ${sizeClasses[size]}`}
+          className={`absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 opacity-20 blur-xl ai-orb-ring ${sizeClasses[size]}`}
           style={{ transform: 'scale(1.3)' }}
         />
 
         {/* Middle ring */}
         <div
-          className={`absolute inset-0 rounded-full bg-gradient-to-r from-violet-300 to-purple-400 opacity-30 blur-md ai-orb-ring ${sizeClasses[size]}`}
+          className={`absolute inset-0 rounded-full bg-gradient-to-r from-blue-300 to-cyan-400 opacity-30 blur-md ai-orb-ring ${sizeClasses[size]}`}
           style={{ transform: 'scale(1.15)', animationDelay: '0.5s' }}
         />
 
         {/* Main orb */}
         <div
-          className={`relative rounded-full bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600 ${sizeClasses[size]} ${getOrbClass()}`}
+          className={`relative rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-600 ${sizeClasses[size]} ${getOrbClass()}`}
         >
           {/* Inner highlight */}
           <div className="absolute inset-4 rounded-full bg-gradient-to-br from-white/30 to-transparent" />
