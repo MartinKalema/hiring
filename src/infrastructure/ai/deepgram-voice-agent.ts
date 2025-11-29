@@ -47,9 +47,10 @@ export interface AgentCallbacks {
   onAudioPlaybackEnd?: () => void
 }
 
-// Message types for Voice Agent WebSocket
+// Message types for Voice Agent WebSocket V1 API
+// Reference: https://developers.deepgram.com/docs/voice-agent-v1-migration
 interface SettingsMessage {
-  type: 'SettingsConfiguration'
+  type: 'Settings'
   audio: {
     input: {
       encoding: string
@@ -70,7 +71,7 @@ interface SettingsMessage {
         type: string
       }
       model: string
-      instructions: string
+      prompt: string  // V1 uses 'prompt' instead of 'instructions'
     }
     speak: {
       model: string
@@ -184,7 +185,7 @@ export class DeepgramVoiceAgent {
     if (!this.ws) return
 
     const settings: SettingsMessage = {
-      type: 'SettingsConfiguration',
+      type: 'Settings',  // V1 API uses 'Settings' instead of 'SettingsConfiguration'
       audio: {
         input: {
           encoding: 'linear16',
@@ -205,7 +206,7 @@ export class DeepgramVoiceAgent {
             type: this.options.thinkProvider || 'anthropic'
           },
           model: this.options.thinkModel || 'claude-sonnet-4-20250514',
-          instructions: this.options.instructions
+          prompt: this.options.instructions  // V1 API uses 'prompt' instead of 'instructions'
         },
         speak: {
           model: this.options.voice || 'aura-asteria-en'
@@ -424,13 +425,13 @@ export class DeepgramVoiceAgent {
     this.ws.send(JSON.stringify(message))
   }
 
-  // Update the agent's instructions mid-conversation
+  // Update the agent's prompt mid-conversation (V1 API)
   updateInstructions(instructions: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
 
     this.ws.send(JSON.stringify({
-      type: 'UpdateInstructions',
-      instructions
+      type: 'UpdatePrompt',  // V1 API uses 'UpdatePrompt' instead of 'UpdateInstructions'
+      prompt: instructions   // V1 API uses 'prompt' instead of 'instructions'
     }))
   }
 
