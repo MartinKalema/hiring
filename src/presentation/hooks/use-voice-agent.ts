@@ -19,6 +19,14 @@ export interface UseVoiceAgentOptions {
   onError?: (error: Error) => void
 }
 
+export interface ConnectOptions {
+  apiKey?: string
+  instructions?: string
+  voice?: string
+  thinkModel?: string
+  thinkProvider?: string
+}
+
 export interface UseVoiceAgentReturn {
   // State
   connectionState: ConnectionState
@@ -33,7 +41,7 @@ export interface UseVoiceAgentReturn {
   agentText: string
 
   // Actions
-  connect: () => Promise<void>
+  connect: (overrides?: ConnectOptions) => Promise<void>
   disconnect: () => void
   interrupt: () => void
   injectMessage: (text: string) => void
@@ -47,19 +55,33 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
 
   const agentRef = useRef<DeepgramVoiceAgent | null>(null)
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (overrides?: ConnectOptions) => {
     if (agentRef.current) {
       agentRef.current.disconnect()
     }
 
-    const agentOptions: AgentOptions = {
-      instructions: options.instructions,
-      voice: options.voice || 'aura-asteria-en',
-      thinkModel: options.thinkModel || 'claude-3-haiku-20240307',
-      thinkProvider: options.thinkProvider || 'anthropic',
+    // Use overrides if provided, otherwise fall back to hook options
+    const apiKey = overrides?.apiKey || options.apiKey
+    const instructions = overrides?.instructions || options.instructions
+    const voice = overrides?.voice || options.voice || 'aura-asteria-en'
+    const thinkModel = overrides?.thinkModel || options.thinkModel || 'claude-3-haiku-20240307'
+    const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'anthropic'
+
+    if (!apiKey) {
+      const error = new Error('API key is required to connect')
+      console.error('Voice agent error:', error)
+      options.onError?.(error)
+      return
     }
 
-    const agent = new DeepgramVoiceAgent(options.apiKey, agentOptions, {
+    const agentOptions: AgentOptions = {
+      instructions,
+      voice,
+      thinkModel,
+      thinkProvider,
+    }
+
+    const agent = new DeepgramVoiceAgent(apiKey, agentOptions, {
       onConnectionStateChange: (state) => {
         setConnectionState(state)
       },
