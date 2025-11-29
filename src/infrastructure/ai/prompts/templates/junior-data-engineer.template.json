@@ -1,0 +1,51 @@
+{
+  "name": "Junior Data Engineer Interview",
+  "jobTitle": "Junior Data Engineer",
+  "jobDescription": "We're looking for a Junior Data Engineer to support the design, development, and maintenance of our data pipelines and infrastructure. You'll work with senior engineers to build reliable systems that collect, process, and store data used across analytics, product development, and machine learning projects.\n\nKey Responsibilities:\n- Build, maintain, and optimize ETL/ELT pipelines for ingesting data from internal and external sources\n- Assist in designing and implementing data models, warehouse structures, and marts\n- Collaborate with senior engineers to maintain data quality, including validation, cleansing, and monitoring\n- Work with cloud services (e.g., AWS, GCP, Azure) to manage storage, compute, and data tools\n- Write clean, maintainable code in Python or similar languages for data processing\n- Support integration of APIs, databases, and third-party data sources\n- Contribute to documentation of pipelines, workflows, and data dictionaries\n- Help debug pipeline issues and participate in on-call/rotation when required\n\nPreferred Skills:\n- Basic experience with SQL and relational databases\n- Understanding of Python for data manipulation (Pandas, PySpark is a bonus)\n- Familiarity with Airflow or other workflow orchestration tools\n- Exposure to cloud platforms (GCP BigQuery, AWS Redshift, etc.)\n- Knowledge of version control (Git), CI/CD, and containerization concepts\n- Understanding of dimensional modeling or basic data architecture concepts\n\nQualifications:\n- Bachelor's degree in Computer Science, Information Systems, Engineering, or related field\n- Internship or project experience in data engineering, analytics, or backend development is a plus\n- Strong eagerness to learn and grow within a fast-paced engineering environment",
+  "competenciesToAssess": [
+    "technical_skills",
+    "database_design",
+    "coding_ability",
+    "devops",
+    "problem_solving",
+    "communication",
+    "growth_mindset",
+    "teamwork"
+  ],
+  "mustAskQuestions": [
+    {
+      "id": "sql-experience",
+      "content": "Walk me through your experience with SQL. What types of queries have you written, and what's the most complex data manipulation you've performed?",
+      "competency": "database_design",
+      "order": 1
+    },
+    {
+      "id": "python-data",
+      "content": "Tell me about a time you used Python to process or analyze data. What was the task and how did you approach it?",
+      "competency": "coding_ability",
+      "order": 2
+    },
+    {
+      "id": "learning-approach",
+      "content": "Data engineering is constantly evolving. How do you stay current with new tools and technologies, and can you share an example of something you taught yourself recently?",
+      "competency": "growth_mindset",
+      "order": 3
+    },
+    {
+      "id": "debugging",
+      "content": "Describe a situation where you encountered unexpected data issues or bugs. How did you identify the root cause and resolve it?",
+      "competency": "problem_solving",
+      "order": 4
+    }
+  ],
+  "config": {
+    "maxDurationMinutes": 15,
+    "depthLevel": "moderate",
+    "maxProbesPerCompetency": 2,
+    "aiVoice": "aura-asteria-en",
+    "language": "en-US",
+    "videoRequired": true,
+    "allowPause": true,
+    "showTranscript": true
+  }
+}
