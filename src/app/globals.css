@@ -19,15 +19,7 @@
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c1929;
-    --foreground: #e0f2fe;
-    --secondary: #1e3a5f;
-    --border: #1e40af;
-    --muted: #94a3b8;
-  }
-}
+/* Light theme only - no dark mode */
 
 body {
   background: var(--background);
@@ -47,11 +39,11 @@ body {
   color: var(--foreground);
 }
 
-/* Active interview - Blue theme */
+/* Active interview - Light blue theme */
 .interview-active {
-  --background: #0c1929;
-  --foreground: #ffffff;
-  background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 50%, #172554 100%);
+  --background: #f0f7ff;
+  --foreground: #1e3a5f;
+  background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
   min-height: 100vh;
   color: var(--foreground);
 }

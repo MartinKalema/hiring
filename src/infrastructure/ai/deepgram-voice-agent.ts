@@ -49,7 +49,18 @@ export interface AgentCallbacks {
 
 // Message types for Voice Agent WebSocket
 interface SettingsMessage {
-  type: 'Settings'
+  type: 'SettingsConfiguration'
+  audio: {
+    input: {
+      encoding: string
+      sample_rate: number
+    }
+    output: {
+      encoding: string
+      sample_rate: number
+      container: string
+    }
+  }
   agent: {
     listen: {
       model: string
@@ -124,8 +135,8 @@ export class DeepgramVoiceAgent {
         }
       })
 
-      // Initialize audio context
-      this.audioContext = new AudioContext({ sampleRate: 16000 })
+      // Initialize audio context - use default sample rate for output playback
+      this.audioContext = new AudioContext()
 
       // Connect to Deepgram Voice Agent WebSocket with API key in URL
       const wsUrl = `wss://agent.deepgram.com/agent?authorization=Token ${this.apiKey}`
@@ -164,7 +175,18 @@ export class DeepgramVoiceAgent {
     if (!this.ws) return
 
     const settings: SettingsMessage = {
-      type: 'Settings',
+      type: 'SettingsConfiguration',
+      audio: {
+        input: {
+          encoding: 'linear16',
+          sample_rate: 16000
+        },
+        output: {
+          encoding: 'linear16',
+          sample_rate: 24000,
+          container: 'wav'
+        }
+      },
       agent: {
         listen: {
           model: this.options.listenModel || 'nova-2'
