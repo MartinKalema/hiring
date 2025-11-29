@@ -173,7 +173,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
     instructions: voiceConfig?.instructions || buildInstructions(),
     voice: voiceConfig?.voice || 'aura-asteria-en',
     thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
-    thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet-20241022',
+    thinkModel: voiceConfig?.thinkModel || 'claude-sonnet-4-20250514',
     onTranscript: (text, isFinal) => {
       if (isFinal && text.trim()) {
         setTranscript(prev => [...prev, { speaker: 'user', text, timestamp: elapsedTime }])
@@ -406,8 +406,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
       <div className="interview-page min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-6 relative">
-            <div className="absolute inset-0 rounded-full border-4 border-violet-200" />
-            <div className="absolute inset-0 rounded-full border-4 border-violet-600 border-t-transparent animate-spin" />
+            <div className="absolute inset-0 rounded-full border-4 border-blue-200" />
+            <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin" />
           </div>
           <p className="text-lg font-medium text-gray-900">Loading your interview...</p>
         </div>
@@ -442,7 +442,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
         {/* Header */}
         <header className="interview-header sticky top-0 z-10 px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
               </svg>
@@ -487,8 +487,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
               </div>
 
               {/* AI Orb preview */}
-              <div className="absolute bottom-1/4 left-1/4 w-32 h-32 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 shadow-lg flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-300/50 to-purple-500/50 flex items-center justify-center">
+              <div className="absolute bottom-1/4 left-1/4 w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 shadow-lg flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-300/50 to-cyan-500/50 flex items-center justify-center">
                   <div className="w-16 h-16 rounded-full bg-white/20" />
                 </div>
               </div>
@@ -602,7 +602,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
         {/* Header */}
         <header className="interview-header sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
               </svg>
@@ -807,8 +807,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
       <div className="interview-page min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-6 relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 animate-pulse" />
-            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-violet-300 to-purple-500" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 animate-pulse" />
+            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-300 to-cyan-500" />
           </div>
           <p className="text-xl font-medium text-gray-900">Joining your AI Interview...</p>
           <p className="text-gray-500 mt-2">Please wait while we connect you with AIR</p>
@@ -854,7 +854,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
 
           {/* Main orb */}
           <div
-            className={`relative rounded-full bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600 w-48 h-48 ${
+            className={`relative rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-600 w-48 h-48 ${
               voiceAgent.isSpeaking ? 'ai-orb-speaking' : 'ai-orb'
             }`}
           >
@@ -953,7 +953,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
           <div className="flex items-center justify-between">
             {/* Branding */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                 </svg>

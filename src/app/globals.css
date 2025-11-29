@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --secondary: #f3f4f6;
-  --muted: #6b7280;
-  --border: #e5e7eb;
+  --background: #f0f9ff;
+  --foreground: #0c4a6e;
+  --primary: #0284c7;
+  --primary-hover: #0369a1;
+  --secondary: #e0f2fe;
+  --muted: #64748b;
+  --border: #bae6fd;
   --error: #ef4444;
   --success: #22c55e;
 }
@@ -21,11 +21,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --secondary: #1f2937;
-    --border: #374151;
-    --muted: #9ca3af;
+    --background: #0c1929;
+    --foreground: #e0f2fe;
+    --secondary: #1e3a5f;
+    --border: #1e40af;
+    --muted: #94a3b8;
   }
 }
 
@@ -35,23 +35,23 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Interview page - force light theme like Braintrust AIR */
+/* Interview page - Blue theme */
 .interview-page {
-  --background: #ffffff;
-  --foreground: #171717;
-  --secondary: #f3f4f6;
-  --border: #e5e7eb;
-  --muted: #6b7280;
-  background: linear-gradient(180deg, #fef7ed 0%, #fce8f3 40%, #e8e0f7 100%);
+  --background: #f0f7ff;
+  --foreground: #1e3a5f;
+  --secondary: #e1effe;
+  --border: #bfdbfe;
+  --muted: #64748b;
+  background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 100%);
   min-height: 100vh;
   color: var(--foreground);
 }
 
-/* Active interview dark theme */
+/* Active interview - Blue theme */
 .interview-active {
-  --background: #1a1a2e;
+  --background: #0c1929;
   --foreground: #ffffff;
-  background: linear-gradient(180deg, #2d2d3a 0%, #1a1a2e 50%, #0f0f1a 100%);
+  background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 50%, #172554 100%);
   min-height: 100vh;
   color: var(--foreground);
 }
@@ -71,15 +71,15 @@ body {
 @keyframes orb-glow {
   0%, 100% {
     box-shadow:
-      0 0 20px rgba(139, 92, 246, 0.3),
-      0 0 40px rgba(139, 92, 246, 0.2),
-      0 0 60px rgba(139, 92, 246, 0.1);
+      0 0 20px rgba(59, 130, 246, 0.3),
+      0 0 40px rgba(59, 130, 246, 0.2),
+      0 0 60px rgba(59, 130, 246, 0.1);
   }
   50% {
     box-shadow:
-      0 0 30px rgba(139, 92, 246, 0.5),
-      0 0 60px rgba(139, 92, 246, 0.3),
-      0 0 90px rgba(139, 92, 246, 0.2);
+      0 0 30px rgba(59, 130, 246, 0.5),
+      0 0 60px rgba(59, 130, 246, 0.3),
+      0 0 90px rgba(59, 130, 246, 0.2);
   }
 }
 
@@ -371,14 +371,14 @@ body {
 .ai-orb-outer-ring {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(139, 92, 246, 0.2);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   animation: ring-rotate 20s linear infinite;
 }
 
 .ai-orb-inner-ring {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  border: 2px solid rgba(59, 130, 246, 0.3);
   animation: ring-rotate 15s linear infinite reverse;
 }
 
@@ -398,7 +398,7 @@ body {
 
 .speaking-wave-bar {
   width: 4px;
-  background: linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%);
+  background: linear-gradient(180deg, #3b82f6 0%, #0ea5e9 100%);
   border-radius: 2px;
   animation: wave-animation 0.8s ease-in-out infinite;
 }
