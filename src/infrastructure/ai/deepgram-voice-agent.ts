@@ -127,9 +127,9 @@ export class DeepgramVoiceAgent {
   // Audio settings - simplified to match official Deepgram demo
   // Input: capture at 48kHz (browser default), downsample to 16kHz for Deepgram
   private readonly INPUT_SAMPLE_RATE = 16000  // What we send to Deepgram
-  // Output: Request 48kHz to match browser's default AudioContext sample rate
-  // This avoids resampling artifacts (electric interference/buzzing)
-  private readonly OUTPUT_SAMPLE_RATE = 48000
+  // Output: Use Deepgram's native Aura TTS sample rate (24kHz)
+  // Browser's AudioContext will handle resampling to its native rate
+  private readonly OUTPUT_SAMPLE_RATE = 24000
 
   // Track last audio buffer end time for seamless playback
   private lastAudioEndTime: number = 0
@@ -162,9 +162,10 @@ export class DeepgramVoiceAgent {
         }
       })
 
-      // Single AudioContext for both capture and playback (simplified approach)
-      // Using default sample rate (usually 48kHz on modern browsers)
-      this.audioContext = new AudioContext()
+      // Create AudioContext at 24kHz to match Deepgram's Aura TTS output
+      // This eliminates resampling artifacts - audio plays at native rate
+      // Per Deepgram's official aura-2-browser-live demo
+      this.audioContext = new AudioContext({ sampleRate: this.OUTPUT_SAMPLE_RATE })
       console.log('[Deepgram] AudioContext sample rate:', this.audioContext.sampleRate)
 
       // Create analyzer for volume visualization (like official demo)
@@ -233,8 +234,8 @@ export class DeepgramVoiceAgent {
         },
         output: {
           encoding: 'linear16',
-          sample_rate: this.OUTPUT_SAMPLE_RATE,  // 24000 Hz from Deepgram
-          container: 'none'  // Raw PCM - we'll handle conversion ourselves
+          sample_rate: this.OUTPUT_SAMPLE_RATE,  // 24kHz - Aura TTS native rate
+          container: 'none'  // Raw PCM - browser AudioContext handles resampling
         }
       },
       agent: {
@@ -543,12 +544,12 @@ export class DeepgramVoiceAgent {
       return null
     }
 
-    // Create buffer at Deepgram's output sample rate (24kHz)
-    // The browser will handle any necessary resampling
+    // Create buffer at Aura TTS native sample rate (24kHz)
+    // Browser's AudioContext automatically resamples to its native rate during playback
     const audioBuffer = this.audioContext!.createBuffer(
       1,  // mono channel
       int16Array.length,
-      this.OUTPUT_SAMPLE_RATE  // 24000 Hz
+      this.OUTPUT_SAMPLE_RATE  // 24kHz
     )
 
     const channelData = audioBuffer.getChannelData(0)
