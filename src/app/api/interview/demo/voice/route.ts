@@ -62,7 +62,7 @@ Start by greeting ${candidateFirstName}, introducing yourself as AIR, explaining
       instructions,
       config: {
         voice: 'aura-asteria-en',
-        thinkModel: 'claude-sonnet-4-20250514',
+        thinkModel: 'claude-3-5-sonnet',
         thinkProvider: 'anthropic',
         maxDuration,
         language: 'en',

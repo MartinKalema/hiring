@@ -64,7 +64,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     const apiKey = overrides?.apiKey || options.apiKey
     const instructions = overrides?.instructions || options.instructions
     const voice = overrides?.voice || options.voice || 'aura-asteria-en'
-    const thinkModel = overrides?.thinkModel || options.thinkModel || 'claude-3-haiku-20240307'
+    const thinkModel = overrides?.thinkModel || options.thinkModel || 'claude-3-5-sonnet'
     const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'anthropic'
 
     if (!apiKey) {

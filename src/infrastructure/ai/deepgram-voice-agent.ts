@@ -31,7 +31,7 @@ export interface AgentOptions {
 
   // LLM settings
   thinkProvider?: string  // 'anthropic', 'openai', 'groq'
-  thinkModel?: string    // 'claude-3-haiku-20240307', 'gpt-4o-mini', etc.
+  thinkModel?: string    // 'claude-3-5-sonnet', 'gpt-4o-mini', etc.
 
   // Conversation context (for continuing conversations)
   context?: Array<{ role: 'user' | 'assistant', content: string }>
@@ -72,8 +72,8 @@ interface SettingsMessage {
     think: {
       provider: {
         type: string
+        model: string  // V1 API: model must be inside provider object
       }
-      model: string
       prompt: string  // V1 uses 'prompt' instead of 'instructions'
     }
     speak: {
@@ -212,9 +212,9 @@ export class DeepgramVoiceAgent {
         },
         think: {
           provider: {
-            type: this.options.thinkProvider || 'anthropic'
+            type: this.options.thinkProvider || 'anthropic',
+            model: this.options.thinkModel || 'claude-3-5-sonnet'  // V1 API: model must be inside provider
           },
-          model: this.options.thinkModel || 'claude-sonnet-4-20250514',
           prompt: this.options.instructions  // V1 API uses 'prompt' instead of 'instructions'
         },
         speak: {
