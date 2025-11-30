@@ -14,6 +14,8 @@ export interface UseVoiceAgentOptions {
   voice?: string
   thinkModel?: string
   thinkProvider?: string
+  language?: string
+  greeting?: string
   onTranscript?: (text: string, isFinal: boolean) => void
   onAgentUtterance?: (text: string) => void
   onError?: (error: Error) => void
@@ -25,6 +27,8 @@ export interface ConnectOptions {
   voice?: string
   thinkModel?: string
   thinkProvider?: string
+  language?: string
+  greeting?: string
 }
 
 export interface UseVoiceAgentReturn {
@@ -61,11 +65,14 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     }
 
     // Use overrides if provided, otherwise fall back to hook options
+    // Defaults match Deepgram Voice Agent documentation
     const apiKey = overrides?.apiKey || options.apiKey
     const instructions = overrides?.instructions || options.instructions
-    const voice = overrides?.voice || options.voice || 'aura-asteria-en'
-    const thinkModel = overrides?.thinkModel || options.thinkModel || 'claude-3-haiku-20240307'
-    const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'anthropic'
+    const voice = overrides?.voice || options.voice || 'aura-2-thalia-en'  // Per docs
+    const thinkModel = overrides?.thinkModel || options.thinkModel || 'gpt-4o-mini'  // Per docs
+    const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'open_ai'  // Per docs
+    const language = overrides?.language || options.language || 'en'  // Per docs
+    const greeting = overrides?.greeting || options.greeting
 
     if (!apiKey) {
       const error = new Error('API key is required to connect')
@@ -79,6 +86,8 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
       voice,
       thinkModel,
       thinkProvider,
+      language,
+      greeting,
     }
 
     const agent = new DeepgramVoiceAgent(apiKey, agentOptions, {

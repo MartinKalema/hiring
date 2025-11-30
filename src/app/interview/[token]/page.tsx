@@ -173,7 +173,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
     instructions: voiceConfig?.instructions || buildInstructions(),
     voice: voiceConfig?.voice || 'aura-asteria-en',
     thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
-    thinkModel: voiceConfig?.thinkModel || 'claude-sonnet-4-20250514',
+    thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
     onTranscript: (text, isFinal) => {
       if (isFinal && text.trim()) {
         setTranscript(prev => [...prev, { speaker: 'user', text, timestamp: elapsedTime }])
@@ -382,6 +382,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
         voice: data.config.voice,
         thinkModel: data.config.thinkModel,
         thinkProvider: data.config.thinkProvider,
+        language: data.config.language,
+        greeting: data.config.greeting,
       })
       setStage('active')
     } catch (error) {

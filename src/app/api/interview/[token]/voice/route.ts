@@ -143,15 +143,19 @@ Start by greeting ${candidateFirstName}, introducing yourself as AIR, explaining
       })
       .eq('token', token)
 
+    // Build greeting message for the AI interviewer
+    const greeting = `Hello ${candidateFirstName}! I'm AIR, your AI interviewer today. I'll be conducting your interview for the ${template.job_title} position at ${template.company_name}. This interview will take about ${maxDuration} minutes. Before we dive into the questions, could you tell me a little about yourself and what interests you about this role?`
+
     return NextResponse.json({
       apiKey: deepgramApiKey,
       instructions,
       config: {
-        voice: (config.aiVoice as string) || 'aura-asteria-en',
-        thinkModel: 'claude-sonnet-4-20250514',
-        thinkProvider: 'anthropic',
+        voice: (config.aiVoice as string) || 'aura-2-thalia-en',  // Per Deepgram docs
+        thinkModel: 'gpt-4o-mini',  // Per Deepgram docs
+        thinkProvider: 'open_ai',  // Per Deepgram docs
         maxDuration,
         language: (config.language as string) || 'en',
+        greeting,  // Initial greeting from the AI interviewer
       },
       interview: {
         jobTitle: template.job_title,

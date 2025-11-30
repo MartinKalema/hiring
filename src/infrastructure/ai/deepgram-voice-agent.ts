@@ -24,14 +24,20 @@ export interface AgentOptions {
   instructions: string
 
   // Speech-to-text model
-  listenModel?: string  // default: 'nova-2'
+  listenModel?: string  // default: 'nova-3'
 
   // Text-to-speech voice
-  voice?: string  // default: 'aura-asteria-en'
+  voice?: string  // default: 'aura-2-thalia-en'
 
   // LLM settings
-  thinkProvider?: string  // 'anthropic', 'openai', 'groq'
-  thinkModel?: string    // 'claude-3-haiku-20240307', 'gpt-4o-mini', etc.
+  thinkProvider?: string  // 'anthropic', 'open_ai', 'groq'
+  thinkModel?: string    // 'claude-3-5-sonnet', 'gpt-4o-mini', etc.
+
+  // Agent language
+  language?: string  // default: 'en'
+
+  // Initial greeting message
+  greeting?: string  // e.g., 'Hello! How can I help you today?'
 
   // Conversation context (for continuing conversations)
   context?: Array<{ role: 'user' | 'assistant', content: string }>
@@ -63,6 +69,7 @@ interface SettingsMessage {
     }
   }
   agent: {
+    language: string
     listen: {
       provider: {
         type: string
@@ -72,8 +79,8 @@ interface SettingsMessage {
     think: {
       provider: {
         type: string
+        model: string  // V1 API: model must be inside provider object
       }
-      model: string
       prompt: string  // V1 uses 'prompt' instead of 'instructions'
     }
     speak: {
@@ -82,6 +89,7 @@ interface SettingsMessage {
         model: string
       }
     }
+    greeting?: string
   }
   context?: {
     messages: Array<{ role: string, content: string }>
@@ -110,8 +118,8 @@ export class DeepgramVoiceAgent {
   private callbacks: AgentCallbacks
   private apiKey: string
 
-  // Audio playback settings - match what we request from Deepgram
-  private readonly OUTPUT_SAMPLE_RATE = 24000
+  // Audio playback settings - match what we request from Deepgram (per docs: output 16000)
+  private readonly OUTPUT_SAMPLE_RATE = 16000
 
   constructor(
     apiKey: string,
@@ -131,11 +139,11 @@ export class DeepgramVoiceAgent {
     this.setConnectionState('connecting')
 
     try {
-      // Request microphone access
+      // Request microphone access (per docs: input sample rate 24000)
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
-          sampleRate: 16000,
+          sampleRate: 24000,
           echoCancellation: true,
           noiseSuppression: true,
         }
@@ -195,34 +203,36 @@ export class DeepgramVoiceAgent {
       audio: {
         input: {
           encoding: 'linear16',
-          sample_rate: 16000
+          sample_rate: 24000  // Per docs: input sample_rate: 24000
         },
         output: {
           encoding: 'linear16',
-          sample_rate: this.OUTPUT_SAMPLE_RATE,
+          sample_rate: this.OUTPUT_SAMPLE_RATE,  // Per docs: output sample_rate: 16000
           container: 'wav'  // WAV container required for browser playback
         }
       },
       agent: {
+        language: this.options.language || 'en',
         listen: {
           provider: {
             type: 'deepgram',
-            model: this.options.listenModel || 'nova-2'
+            model: this.options.listenModel || 'nova-3'  // Per docs: nova-3
           }
         },
         think: {
           provider: {
-            type: this.options.thinkProvider || 'anthropic'
+            type: this.options.thinkProvider || 'open_ai',  // Per docs: open_ai
+            model: this.options.thinkModel || 'gpt-4o-mini'  // Per docs: gpt-4o-mini
           },
-          model: this.options.thinkModel || 'claude-sonnet-4-20250514',
           prompt: this.options.instructions  // V1 API uses 'prompt' instead of 'instructions'
         },
         speak: {
           provider: {
             type: 'deepgram',
-            model: this.options.voice || 'aura-asteria-en'
+            model: this.options.voice || 'aura-2-thalia-en'  // Per docs: aura-2-thalia-en
           }
-        }
+        },
+        greeting: this.options.greeting  // Optional greeting message
       }
     }
 
