@@ -106,8 +106,7 @@ interface InjectMessage {
 
 export class DeepgramVoiceAgent {
   private ws: WebSocket | null = null
-  private audioContext: AudioContext | null = null  // For microphone capture (24000 Hz)
-  private playbackContext: AudioContext | null = null  // For audio playback (native sample rate)
+  private audioContext: AudioContext | null = null  // Single AudioContext for both capture and playback
   private mediaStream: MediaStream | null = null
   private audioProcessor: ScriptProcessorNode | null = null
   private mediaStreamSource: MediaStreamAudioSourceNode | null = null
@@ -115,10 +114,8 @@ export class DeepgramVoiceAgent {
   private isPlaying = false
   private keepAliveInterval: NodeJS.Timeout | null = null
 
-  // Audio processing nodes for smoother playback
-  private gainNode: GainNode | null = null
-  private lowPassFilter: BiquadFilterNode | null = null
-  private highPassFilter: BiquadFilterNode | null = null  // Remove DC offset and low-frequency hum
+  // For volume visualization (optional, like official demo)
+  private analyzerNode: AnalyserNode | null = null
 
   private connectionState: ConnectionState = 'disconnected'
   private agentState: AgentState = 'idle'
@@ -127,12 +124,11 @@ export class DeepgramVoiceAgent {
   private callbacks: AgentCallbacks
   private apiKey: string
 
-  // Audio settings
-  // Input sample rate must be 24000 Hz for Deepgram's VAD and STT
-  // Output sample rate from Deepgram (we'll resample to playback context's native rate)
+  // Audio settings - simplified to match official Deepgram demo
+  // Input: capture at 48kHz (browser default), downsample to 16kHz for Deepgram
+  private readonly INPUT_SAMPLE_RATE = 16000  // What we send to Deepgram
+  // Output: Deepgram sends 24kHz audio
   private readonly OUTPUT_SAMPLE_RATE = 24000
-  // Speech playback speed (1.0 = normal) - avoid artifacts by not changing speed
-  private speechSpeed: number = 1.0
 
   // Track last audio buffer end time for seamless playback
   private lastAudioEndTime: number = 0
@@ -145,8 +141,6 @@ export class DeepgramVoiceAgent {
     this.apiKey = apiKey
     this.options = options
     this.callbacks = callbacks
-    // Set speech speed (default 1.0, recommended 1.1-1.3 for faster speech)
-    this.speechSpeed = options.speechSpeed || 1.0
   }
 
   async connect(): Promise<void> {
@@ -157,58 +151,31 @@ export class DeepgramVoiceAgent {
     this.setConnectionState('connecting')
 
     try {
-      // Request microphone access (per docs: input sample rate 24000)
+      // Request microphone access - let browser use default sample rate (usually 48kHz)
+      // We'll downsample to 16kHz before sending to Deepgram (matching official demo)
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
-          sampleRate: 24000,
           echoCancellation: true,
-          noiseSuppression: true,
+          noiseSuppression: false,  // Disabled per official demo
         }
       })
 
-      // Initialize audio context with 24000 Hz sample rate to match Deepgram's expected input format
-      // This is critical - if the sample rate doesn't match what we tell Deepgram, VAD won't detect speech
-      this.audioContext = new AudioContext({ sampleRate: 24000 })
+      // Single AudioContext for both capture and playback (simplified approach)
+      // Using default sample rate (usually 48kHz on modern browsers)
+      this.audioContext = new AudioContext()
+      console.log('[Deepgram] AudioContext sample rate:', this.audioContext.sampleRate)
 
-      // Create a separate playback context at the browser's native sample rate
-      // This avoids resampling artifacts that cause electric/buzzing sounds
-      this.playbackContext = new AudioContext()
-      console.log('[Deepgram] Playback context sample rate:', this.playbackContext.sampleRate)
-
-      // Set up audio processing chain to reduce artifacts
-      // High-pass filter to remove DC offset and low-frequency hum (below 80Hz)
-      this.highPassFilter = this.playbackContext.createBiquadFilter()
-      this.highPassFilter.type = 'highpass'
-      this.highPassFilter.frequency.value = 80  // Cut frequencies below 80Hz (removes hum)
-      this.highPassFilter.Q.value = 0.7  // Gentle rolloff
-
-      // Low-pass filter to remove high-frequency noise/artifacts from resampling
-      this.lowPassFilter = this.playbackContext.createBiquadFilter()
-      this.lowPassFilter.type = 'lowpass'
-      this.lowPassFilter.frequency.value = 7500  // Slightly lower cutoff to reduce more artifacts
-      this.lowPassFilter.Q.value = 0.5  // Even gentler rolloff to avoid ringing
-
-      // Gain node for volume control
-      this.gainNode = this.playbackContext.createGain()
-      this.gainNode.gain.value = 1.0
-
-      // Connect: highPass -> lowPass -> gain -> destination
-      this.highPassFilter.connect(this.lowPassFilter)
-      this.lowPassFilter.connect(this.gainNode)
-      this.gainNode.connect(this.playbackContext.destination)
+      // Create analyzer for volume visualization (like official demo)
+      this.analyzerNode = this.audioContext.createAnalyser()
+      this.analyzerNode.connect(this.audioContext.destination)
 
       // Reset audio timing
       this.lastAudioEndTime = 0
 
-      // Connect to Deepgram Voice Agent WebSocket V1 with API key via Sec-WebSocket-Protocol header
-      // Browser WebSockets can't set custom headers, so we use the subprotocol parameter
-      // Per docs: https://developers.deepgram.com/docs/using-the-sec-websocket-protocol
+      // Connect to Deepgram Voice Agent WebSocket V1
       const wsUrl = 'wss://agent.deepgram.com/v1/agent/converse'
       console.log('[Deepgram] Connecting to Voice Agent...')
-      console.log('[Deepgram] URL:', wsUrl)
-      console.log('[Deepgram] API Key present:', !!this.apiKey, 'length:', this.apiKey?.length)
-      // Pass 'token' and the API key as subprotocols - server will use these for authentication
       this.ws = new WebSocket(wsUrl, ['token', this.apiKey])
 
       this.ws.onopen = () => {
@@ -236,8 +203,6 @@ export class DeepgramVoiceAgent {
 
       this.ws.onerror = (error) => {
         console.error('[Deepgram] WebSocket error:', error)
-        console.error('[Deepgram] API Key (first 8 chars):', this.apiKey?.substring(0, 8) + '...')
-        console.error('[Deepgram] WebSocket URL:', wsUrl, '(auth via Sec-WebSocket-Protocol)')
         this.callbacks.onError?.(new Error('WebSocket connection failed - check API key and network'))
         this.setConnectionState('error')
       }
@@ -259,16 +224,16 @@ export class DeepgramVoiceAgent {
     if (!this.ws) return
 
     const settings: SettingsMessage = {
-      type: 'Settings',  // V1 API uses 'Settings' instead of 'SettingsConfiguration'
+      type: 'Settings',
       audio: {
         input: {
           encoding: 'linear16',
-          sample_rate: 24000  // Per docs: input sample_rate: 24000
+          sample_rate: this.INPUT_SAMPLE_RATE  // 16000 Hz (matching official demo)
         },
         output: {
           encoding: 'linear16',
-          sample_rate: this.OUTPUT_SAMPLE_RATE,  // 24000 Hz to match AudioContext and avoid resampling artifacts
-          container: 'wav'  // WAV container required for browser playback
+          sample_rate: this.OUTPUT_SAMPLE_RATE,  // 24000 Hz from Deepgram
+          container: 'none'  // Raw PCM - we'll handle conversion ourselves
         }
       },
       agent: {
@@ -309,14 +274,14 @@ export class DeepgramVoiceAgent {
     this.ws.send(JSON.stringify(settings))
   }
 
-  // Keep-alive to maintain WebSocket connection (required every 5 seconds per Deepgram docs)
+  // Keep-alive to maintain WebSocket connection (every 6 seconds per official demo)
   private startKeepAlive(): void {
     this.stopKeepAlive()
     this.keepAliveInterval = setInterval(() => {
       if (this.ws?.readyState === WebSocket.OPEN) {
         this.ws.send(JSON.stringify({ type: 'KeepAlive' }))
       }
-    }, 5000)
+    }, 6000)
   }
 
   private stopKeepAlive(): void {
@@ -329,7 +294,8 @@ export class DeepgramVoiceAgent {
   private startAudioCapture(): void {
     if (!this.audioContext || !this.mediaStream) return
 
-    console.log('[Deepgram] Starting audio capture, AudioContext sample rate:', this.audioContext.sampleRate)
+    const nativeSampleRate = this.audioContext.sampleRate
+    console.log('[Deepgram] Starting audio capture, native sample rate:', nativeSampleRate)
 
     this.mediaStreamSource = this.audioContext.createMediaStreamSource(this.mediaStream)
     this.audioProcessor = this.audioContext.createScriptProcessor(4096, 1, 1)
@@ -340,22 +306,49 @@ export class DeepgramVoiceAgent {
       if (this.agentState === 'speaking') return  // Don't send audio while agent is speaking
 
       const inputData = event.inputBuffer.getChannelData(0)
-      const int16Data = this.floatTo16BitPCM(inputData)
 
-      // Send raw binary audio data (not JSON-wrapped)
-      // Deepgram Voice Agent expects binary messages for audio
+      // Downsample from native rate (e.g., 48kHz) to 16kHz (matching official demo)
+      const downsampledData = this.downsample(inputData, nativeSampleRate, this.INPUT_SAMPLE_RATE)
+      const int16Data = this.floatTo16BitPCM(downsampledData)
+
+      // Send raw binary audio data
       this.ws.send(int16Data.buffer)
 
-      // Log every 50 chunks (~8 seconds) to confirm audio is being sent
+      // Log every 50 chunks to confirm audio is being sent
       audioChunkCount++
       if (audioChunkCount % 50 === 1) {
-        console.log('[Deepgram] Sending audio chunk', audioChunkCount, '- agentState:', this.agentState)
+        console.log('[Deepgram] Sending audio chunk', audioChunkCount)
       }
     }
 
     this.mediaStreamSource.connect(this.audioProcessor)
     this.audioProcessor.connect(this.audioContext.destination)
     console.log('[Deepgram] Audio capture started')
+  }
+
+  // Downsample audio from one sample rate to another (from official Deepgram demo)
+  private downsample(buffer: Float32Array, fromSampleRate: number, toSampleRate: number): Float32Array {
+    if (fromSampleRate === toSampleRate) {
+      return buffer
+    }
+    const sampleRateRatio = fromSampleRate / toSampleRate
+    const newLength = Math.round(buffer.length / sampleRateRatio)
+    const result = new Float32Array(newLength)
+    let offsetResult = 0
+    let offsetBuffer = 0
+    while (offsetResult < result.length) {
+      const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio)
+      let accum = 0
+      let count = 0
+      for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+        accum += buffer[i]
+        count++
+      }
+      result[offsetResult] = accum / count
+      offsetResult++
+      offsetBuffer = nextOffsetBuffer
+    }
+    return result
   }
 
   private handleMessage(data: string): void {
@@ -477,8 +470,8 @@ export class DeepgramVoiceAgent {
   }
 
   private async playAudio(base64Audio: string): Promise<void> {
-    if (!this.playbackContext) {
-      console.warn('[Deepgram] No playback context for audio')
+    if (!this.audioContext) {
+      console.warn('[Deepgram] No audio context for playback')
       return
     }
 
@@ -497,7 +490,7 @@ export class DeepgramVoiceAgent {
   }
 
   private async playNextInQueue(): Promise<void> {
-    if (this.audioQueue.length === 0 || !this.playbackContext || !this.highPassFilter) {
+    if (this.audioQueue.length === 0 || !this.audioContext || !this.analyzerNode) {
       this.isPlaying = false
       this.lastAudioEndTime = 0  // Reset timing when queue is empty
       return
@@ -507,36 +500,26 @@ export class DeepgramVoiceAgent {
     const audioData = this.audioQueue.shift()!
 
     try {
-      // Resume playback context if suspended (required by browser autoplay policies)
-      if (this.playbackContext.state === 'suspended') {
-        await this.playbackContext.resume()
+      // Resume context if suspended (required by browser autoplay policies)
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume()
       }
 
-      let audioBuffer: AudioBuffer
-
-      // Check if data has WAV header (starts with "RIFF")
-      const header = new Uint8Array(audioData.slice(0, 4))
-      const isWav = header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46
-
-      if (isWav) {
-        // Decode WAV file using browser's decodeAudioData
-        // The playback context will handle resampling to its native rate
-        audioBuffer = await this.playbackContext.decodeAudioData(audioData.slice(0))
-      } else {
-        // Raw linear16 PCM data - convert manually to AudioBuffer
-        audioBuffer = this.pcmToAudioBuffer(audioData)
+      // Create audio buffer from raw PCM data (simplified, like official demo)
+      const audioBuffer = this.createAudioBuffer(audioData)
+      if (!audioBuffer) {
+        this.playNextInQueue()
+        return
       }
 
-      const source = this.playbackContext.createBufferSource()
+      const source = this.audioContext.createBufferSource()
       source.buffer = audioBuffer
-      // Keep playback at normal speed to avoid artifacts
-      source.playbackRate.value = 1.0
 
-      // Connect through the audio processing chain (highPass -> lowPass -> gain -> destination)
-      source.connect(this.highPassFilter)
+      // Simple connection: source -> analyzer -> destination (like official demo)
+      source.connect(this.analyzerNode)
 
       // Schedule playback to avoid gaps/overlaps
-      const currentTime = this.playbackContext.currentTime
+      const currentTime = this.audioContext.currentTime
       const startTime = Math.max(currentTime, this.lastAudioEndTime)
 
       // Update end time for next chunk
@@ -551,55 +534,27 @@ export class DeepgramVoiceAgent {
     }
   }
 
-  // Convert raw linear16 PCM data to AudioBuffer with proper resampling
-  private pcmToAudioBuffer(pcmData: ArrayBuffer): AudioBuffer {
+  // Create AudioBuffer from raw linear16 PCM data (simplified, from official Deepgram demo)
+  private createAudioBuffer(pcmData: ArrayBuffer): AudioBuffer | null {
     const int16Array = new Int16Array(pcmData)
-    const numSamples = int16Array.length
+    if (int16Array.length === 0) {
+      console.error('[Deepgram] Received audio data is empty')
+      return null
+    }
 
-    // Get the playback context's native sample rate
-    const nativeSampleRate = this.playbackContext!.sampleRate
-    const inputSampleRate = this.OUTPUT_SAMPLE_RATE  // 24000 Hz from Deepgram
-
-    // Calculate resampled length
-    const resampleRatio = nativeSampleRate / inputSampleRate
-    const resampledLength = Math.floor(numSamples * resampleRatio)
-
-    // Create AudioBuffer at the native sample rate to avoid browser resampling artifacts
-    const audioBuffer = this.playbackContext!.createBuffer(
+    // Create buffer at Deepgram's output sample rate (24kHz)
+    // The browser will handle any necessary resampling
+    const audioBuffer = this.audioContext!.createBuffer(
       1,  // mono channel
-      resampledLength,
-      nativeSampleRate
+      int16Array.length,
+      this.OUTPUT_SAMPLE_RATE  // 24000 Hz
     )
 
     const channelData = audioBuffer.getChannelData(0)
 
-    // Helper function to get sample at index (clamped, converted to float)
-    const getSample = (index: number): number => {
-      const clampedIndex = Math.max(0, Math.min(numSamples - 1, index))
-      return int16Array[clampedIndex] / 32768
-    }
-
-    // Cubic interpolation resampling (smoother than linear, reduces artifacts)
-    for (let i = 0; i < resampledLength; i++) {
-      const srcIndex = i / resampleRatio
-      const srcIndexFloor = Math.floor(srcIndex)
-      const fraction = srcIndex - srcIndexFloor
-
-      // Get 4 samples for cubic interpolation
-      const s0 = getSample(srcIndexFloor - 1)
-      const s1 = getSample(srcIndexFloor)
-      const s2 = getSample(srcIndexFloor + 1)
-      const s3 = getSample(srcIndexFloor + 2)
-
-      // Cubic Hermite interpolation (Catmull-Rom spline)
-      const a0 = -0.5 * s0 + 1.5 * s1 - 1.5 * s2 + 0.5 * s3
-      const a1 = s0 - 2.5 * s1 + 2 * s2 - 0.5 * s3
-      const a2 = -0.5 * s0 + 0.5 * s2
-      const a3 = s1
-
-      // Evaluate cubic polynomial
-      const t = fraction
-      channelData[i] = a0 * t * t * t + a1 * t * t + a2 * t + a3
+    // Convert linear16 PCM to float [-1, 1] (simple conversion from official demo)
+    for (let i = 0; i < int16Array.length; i++) {
+      channelData[i] = int16Array[i] / 32768
     }
 
     return audioBuffer
@@ -658,26 +613,13 @@ export class DeepgramVoiceAgent {
       this.mediaStream.getTracks().forEach(track => track.stop())
       this.mediaStream = null
     }
+    if (this.analyzerNode) {
+      this.analyzerNode.disconnect()
+      this.analyzerNode = null
+    }
     if (this.audioContext) {
       this.audioContext.close()
       this.audioContext = null
-    }
-    // Cleanup audio processing nodes
-    if (this.highPassFilter) {
-      this.highPassFilter.disconnect()
-      this.highPassFilter = null
-    }
-    if (this.lowPassFilter) {
-      this.lowPassFilter.disconnect()
-      this.lowPassFilter = null
-    }
-    if (this.gainNode) {
-      this.gainNode.disconnect()
-      this.gainNode = null
-    }
-    if (this.playbackContext) {
-      this.playbackContext.close()
-      this.playbackContext = null
     }
     this.audioQueue = []
     this.isPlaying = false
