@@ -106,7 +106,12 @@ interface InjectMessage {
 
 export class DeepgramVoiceAgent {
   private ws: WebSocket | null = null
-  private audioContext: AudioContext | null = null  // Single AudioContext for both capture and playback
+  // Use TWO SEPARATE AudioContexts like official Deepgram demo:
+  // - microphoneAudioContext: for mic capture at browser's native rate (~48kHz)
+  // - playbackAudioContext: for TTS playback at 24kHz
+  // This prevents interference between input/output and avoids double resampling
+  private microphoneAudioContext: AudioContext | null = null
+  private playbackAudioContext: AudioContext | null = null
   private mediaStream: MediaStream | null = null
   private audioProcessor: ScriptProcessorNode | null = null
   private mediaStreamSource: MediaStreamAudioSourceNode | null = null
@@ -124,11 +129,11 @@ export class DeepgramVoiceAgent {
   private callbacks: AgentCallbacks
   private apiKey: string
 
-  // Audio settings - simplified to match official Deepgram demo
+  // Audio settings - matching official Deepgram demo exactly
   // Input: capture at 48kHz (browser default), downsample to 16kHz for Deepgram
   private readonly INPUT_SAMPLE_RATE = 16000  // What we send to Deepgram
+  private readonly MIC_SAMPLE_RATE = 48000    // Browser's native mic rate (assumed)
   // Output: Use Deepgram's native Aura TTS sample rate (24kHz)
-  // Browser's AudioContext will handle resampling to its native rate
   private readonly OUTPUT_SAMPLE_RATE = 24000
 
   // Track last audio buffer end time for seamless playback
@@ -152,26 +157,36 @@ export class DeepgramVoiceAgent {
     this.setConnectionState('connecting')
 
     try {
-      // Request microphone access - let browser use default sample rate (usually 48kHz)
-      // We'll downsample to 16kHz before sending to Deepgram (matching official demo)
+      // Request microphone access - matching official Deepgram demo settings exactly
+      // IMPORTANT: noiseSuppression must be FALSE per official demo
+      // The browser's noise suppression can interfere with Deepgram's processing
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
+          sampleRate: 16000,       // Request 16kHz (browser may use different rate)
           channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,  // Enable to reduce background noise and audio artifacts
-          autoGainControl: true,   // Help normalize audio levels
+          echoCancellation: true,  // Keep echo cancellation
+          noiseSuppression: false, // DISABLED per official Deepgram demo
+          autoGainControl: false,  // Disabled to match official demo
         }
       })
 
-      // Create AudioContext at 24kHz to match Deepgram's Aura TTS output
-      // This eliminates resampling artifacts - audio plays at native rate
-      // Per Deepgram's official aura-2-browser-live demo
-      this.audioContext = new AudioContext({ sampleRate: this.OUTPUT_SAMPLE_RATE })
-      console.log('[Deepgram] AudioContext sample rate:', this.audioContext.sampleRate)
+      // Create TWO SEPARATE AudioContexts (matching official Deepgram demo pattern)
+      // This is critical for preventing audio interference between mic and playback
 
-      // Create analyzer for volume visualization (like official demo)
-      this.analyzerNode = this.audioContext.createAnalyser()
-      this.analyzerNode.connect(this.audioContext.destination)
+      // 1. Microphone AudioContext - at browser's default rate for capture
+      // NOT specifying sampleRate lets browser use native rate (~48kHz)
+      this.microphoneAudioContext = new AudioContext()
+      console.log('[Deepgram] Microphone AudioContext sample rate:', this.microphoneAudioContext.sampleRate)
+
+      // 2. Playback AudioContext - at 24kHz to match Deepgram's Aura TTS output
+      this.playbackAudioContext = new AudioContext({ sampleRate: this.OUTPUT_SAMPLE_RATE })
+      console.log('[Deepgram] Playback AudioContext sample rate:', this.playbackAudioContext.sampleRate)
+
+      // Create analyzer for volume visualization on playback context
+      this.analyzerNode = this.playbackAudioContext.createAnalyser()
+      this.analyzerNode.fftSize = 2048
+      this.analyzerNode.smoothingTimeConstant = 0.96
+      this.analyzerNode.connect(this.playbackAudioContext.destination)
 
       // Reset audio timing
       this.lastAudioEndTime = 0
@@ -295,30 +310,25 @@ export class DeepgramVoiceAgent {
   }
 
   private startAudioCapture(): void {
-    if (!this.audioContext || !this.mediaStream) return
+    if (!this.microphoneAudioContext || !this.mediaStream) return
 
-    const nativeSampleRate = this.audioContext.sampleRate
-    console.log('[Deepgram] Starting audio capture, native sample rate:', nativeSampleRate)
+    // Use the microphone AudioContext's sample rate for capture
+    // This is typically 48kHz on most browsers
+    const nativeSampleRate = this.microphoneAudioContext.sampleRate
+    console.log('[Deepgram] Starting audio capture, mic context sample rate:', nativeSampleRate)
 
-    this.mediaStreamSource = this.audioContext.createMediaStreamSource(this.mediaStream)
-    this.audioProcessor = this.audioContext.createScriptProcessor(4096, 1, 1)
+    this.mediaStreamSource = this.microphoneAudioContext.createMediaStreamSource(this.mediaStream)
+    this.audioProcessor = this.microphoneAudioContext.createScriptProcessor(4096, 1, 1)
 
     let audioChunkCount = 0
     this.audioProcessor.onaudioprocess = (event) => {
-      // CRITICAL: Always zero the output buffer to prevent any garbage/noise from passing through
-      // ScriptProcessorNode output buffers may contain uninitialized data if not written to
-      const outputData = event.outputBuffer.getChannelData(0)
-      for (let i = 0; i < outputData.length; i++) {
-        outputData[i] = 0
-      }
-
       if (this.ws?.readyState !== WebSocket.OPEN) return
-      if (this.agentState === 'speaking') return  // Don't send audio while agent is speaking
 
       const inputData = event.inputBuffer.getChannelData(0)
 
-      // Downsample from native rate (e.g., 48kHz) to 16kHz (matching official demo)
-      const downsampledData = this.downsample(inputData, nativeSampleRate, this.INPUT_SAMPLE_RATE)
+      // Downsample from 48kHz to 16kHz (matching official Deepgram demo exactly)
+      // Official demo hardcodes 48000 as source rate
+      const downsampledData = this.downsample(inputData, this.MIC_SAMPLE_RATE, this.INPUT_SAMPLE_RATE)
       const int16Data = this.floatTo16BitPCM(downsampledData)
 
       // Send raw binary audio data
@@ -331,15 +341,12 @@ export class DeepgramVoiceAgent {
       }
     }
 
+    // Connect mic -> processor -> destination (matching official Deepgram demo)
+    // Since we're using a SEPARATE AudioContext for mic capture (not the playback context),
+    // connecting to destination is fine - it won't interfere with TTS playback
     this.mediaStreamSource.connect(this.audioProcessor)
-    // ScriptProcessor must be connected to the audio graph to fire onaudioprocess events,
-    // but we DON'T want to play the microphone audio through the speakers (causes background noise).
-    // Solution: Route through a silent gain node
-    const silentSink = this.audioContext.createGain()
-    silentSink.gain.value = 0
-    this.audioProcessor.connect(silentSink)
-    silentSink.connect(this.audioContext.destination)
-    console.log('[Deepgram] Audio capture started (mic routed to silent sink)')
+    this.audioProcessor.connect(this.microphoneAudioContext.destination)
+    console.log('[Deepgram] Audio capture started (separate mic context)')
   }
 
   // Downsample audio from one sample rate to another (from official Deepgram demo)
@@ -486,8 +493,8 @@ export class DeepgramVoiceAgent {
   }
 
   private async playAudio(base64Audio: string): Promise<void> {
-    if (!this.audioContext) {
-      console.warn('[Deepgram] No audio context for playback')
+    if (!this.playbackAudioContext) {
+      console.warn('[Deepgram] No playback audio context')
       return
     }
 
@@ -506,7 +513,7 @@ export class DeepgramVoiceAgent {
   }
 
   private async playNextInQueue(): Promise<void> {
-    if (this.audioQueue.length === 0 || !this.audioContext || !this.analyzerNode) {
+    if (this.audioQueue.length === 0 || !this.playbackAudioContext || !this.analyzerNode) {
       this.isPlaying = false
       this.lastAudioEndTime = 0  // Reset timing when queue is empty
       return
@@ -517,25 +524,25 @@ export class DeepgramVoiceAgent {
 
     try {
       // Resume context if suspended (required by browser autoplay policies)
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume()
+      if (this.playbackAudioContext.state === 'suspended') {
+        await this.playbackAudioContext.resume()
       }
 
-      // Create audio buffer from raw PCM data (simplified, like official demo)
+      // Create audio buffer from raw PCM data (matching official demo)
       const audioBuffer = this.createAudioBuffer(audioData)
       if (!audioBuffer) {
         this.playNextInQueue()
         return
       }
 
-      const source = this.audioContext.createBufferSource()
+      const source = this.playbackAudioContext.createBufferSource()
       source.buffer = audioBuffer
 
       // Simple connection: source -> analyzer -> destination (like official demo)
       source.connect(this.analyzerNode)
 
       // Schedule playback to avoid gaps/overlaps
-      const currentTime = this.audioContext.currentTime
+      const currentTime = this.playbackAudioContext.currentTime
       const startTime = Math.max(currentTime, this.lastAudioEndTime)
 
       // Update end time for next chunk
@@ -550,7 +557,7 @@ export class DeepgramVoiceAgent {
     }
   }
 
-  // Create AudioBuffer from raw linear16 PCM data (simplified, from official Deepgram demo)
+  // Create AudioBuffer from raw linear16 PCM data (matching official Deepgram demo)
   private createAudioBuffer(pcmData: ArrayBuffer): AudioBuffer | null {
     const int16Array = new Int16Array(pcmData)
     if (int16Array.length === 0) {
@@ -559,8 +566,7 @@ export class DeepgramVoiceAgent {
     }
 
     // Create buffer at Aura TTS native sample rate (24kHz)
-    // Browser's AudioContext automatically resamples to its native rate during playback
-    const audioBuffer = this.audioContext!.createBuffer(
+    const audioBuffer = this.playbackAudioContext!.createBuffer(
       1,  // mono channel
       int16Array.length,
       this.OUTPUT_SAMPLE_RATE  // 24kHz
@@ -568,7 +574,7 @@ export class DeepgramVoiceAgent {
 
     const channelData = audioBuffer.getChannelData(0)
 
-    // Convert linear16 PCM to float [-1, 1] (simple conversion from official demo)
+    // Convert linear16 PCM to float [-1, 1] (matching official demo)
     for (let i = 0; i < int16Array.length; i++) {
       channelData[i] = int16Array[i] / 32768
     }
@@ -633,9 +639,14 @@ export class DeepgramVoiceAgent {
       this.analyzerNode.disconnect()
       this.analyzerNode = null
     }
-    if (this.audioContext) {
-      this.audioContext.close()
-      this.audioContext = null
+    // Close both AudioContexts
+    if (this.microphoneAudioContext) {
+      this.microphoneAudioContext.close()
+      this.microphoneAudioContext = null
+    }
+    if (this.playbackAudioContext) {
+      this.playbackAudioContext.close()
+      this.playbackAudioContext = null
     }
     this.audioQueue = []
     this.isPlaying = false
@@ -649,21 +660,8 @@ export class DeepgramVoiceAgent {
 
   private setAgentState(state: AgentState): void {
     this.agentState = state
-
-    // Mute microphone when agent is speaking to prevent any feedback/echo
-    // This completely stops the mic from picking up speaker audio
-    if (this.mediaStream) {
-      const audioTrack = this.mediaStream.getAudioTracks()[0]
-      if (audioTrack) {
-        audioTrack.enabled = state !== 'speaking'
-        if (state === 'speaking') {
-          console.log('[Deepgram] Microphone muted (agent speaking)')
-        } else if (state === 'listening') {
-          console.log('[Deepgram] Microphone unmuted (listening)')
-        }
-      }
-    }
-
+    // With separate AudioContexts for mic and playback, we don't need to mute
+    // the microphone - the audio streams are completely isolated
     this.callbacks.onAgentStateChange?.(state)
   }
 
