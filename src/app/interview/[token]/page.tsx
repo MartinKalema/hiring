@@ -61,6 +61,8 @@ export default function InterviewPage() {
   const targetTextRef = useRef('')  // Full text to reveal
   const wordIndexRef = useRef(0)    // Current word position
   const wordRevealIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const textReceivedTimeRef = useRef<number>(0)  // Track when text was received
+  const isRevealingRef = useRef(false)  // Ref to track revealing state for timeout callbacks
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [timeWarningGiven, setTimeWarningGiven] = useState(false)
@@ -180,21 +182,26 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
       clearInterval(wordRevealIntervalRef.current)
     }
 
+    // Record when we received this text
+    textReceivedTimeRef.current = Date.now()
+
     targetTextRef.current = text
     wordIndexRef.current = 0
     setDisplayedText('')
     setIsRevealingText(true)
+    isRevealingRef.current = true
 
     const words = text.split(/\s+/)
     if (words.length === 0) {
       setIsRevealingText(false)
+      isRevealingRef.current = false
       return
     }
 
-    // Calculate reveal speed based on text length
-    // Aim for ~150 words per minute speaking rate (average human speech)
-    // That's ~400ms per word, but we'll go slightly faster for better UX
-    const msPerWord = 200
+    // Calculate reveal speed to match natural speaking rate
+    // Average speaking is ~150 words per minute = ~400ms per word
+    // We use 250ms for slightly faster reveal that still feels natural
+    const msPerWord = 250
 
     wordRevealIntervalRef.current = setInterval(() => {
       wordIndexRef.current++
@@ -207,6 +214,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
           wordRevealIntervalRef.current = null
         }
         setIsRevealingText(false)
+        isRevealingRef.current = false
       }
     }, msPerWord)
   }, [])
@@ -218,6 +226,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
       wordRevealIntervalRef.current = null
     }
     setIsRevealingText(false)
+    isRevealingRef.current = false
     // Show full text when stopped
     if (targetTextRef.current) {
       setDisplayedText(targetTextRef.current)
@@ -361,11 +370,26 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
     }
   }, [])
 
-  // Stop word reveal when agent stops speaking
+  // Stop word reveal when agent genuinely stops speaking
   useEffect(() => {
     if (!voiceAgent.isSpeaking && isRevealingText) {
-      // Agent stopped speaking, show full text immediately
-      stopWordReveal()
+      // Don't immediately stop if we just received text (speaking state might be delayed)
+      const timeSinceTextReceived = Date.now() - textReceivedTimeRef.current
+      const minWaitTime = 1500  // Wait at least 1.5 seconds before considering stopping
+
+      if (timeSinceTextReceived < minWaitTime) {
+        // Text was just received, wait a bit before deciding to stop
+        const checkTimeout = setTimeout(() => {
+          // After waiting, check if still revealing (using ref for current value)
+          if (isRevealingRef.current) {
+            stopWordReveal()
+          }
+        }, minWaitTime - timeSinceTextReceived)
+        return () => clearTimeout(checkTimeout)
+      } else {
+        // Agent genuinely stopped speaking, show full text
+        stopWordReveal()
+      }
     }
   }, [voiceAgent.isSpeaking, isRevealingText, stopWordReveal])
 
