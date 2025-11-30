@@ -171,7 +171,18 @@ export class DeepgramVoiceAgent {
       }
 
       this.ws.onmessage = (event) => {
-        this.handleMessage(event.data)
+        // Handle both binary (Blob) and text (JSON) messages
+        if (event.data instanceof Blob) {
+          // Binary data is audio from the agent
+          this.handleBinaryMessage(event.data)
+        } else if (typeof event.data === 'string') {
+          this.handleMessage(event.data)
+        } else if (event.data instanceof ArrayBuffer) {
+          // ArrayBuffer is also binary audio data
+          this.handleBinaryAudioBuffer(event.data)
+        } else {
+          console.warn('[Deepgram] Unknown message type:', typeof event.data)
+        }
       }
 
       this.ws.onerror = (error) => {
@@ -383,6 +394,26 @@ export class DeepgramVoiceAgent {
       }
     } catch (error) {
       console.error('[Deepgram] Error parsing message:', error)
+    }
+  }
+
+  private async handleBinaryMessage(blob: Blob): Promise<void> {
+    try {
+      const arrayBuffer = await blob.arrayBuffer()
+      this.handleBinaryAudioBuffer(arrayBuffer)
+    } catch (error) {
+      console.error('[Deepgram] Error handling binary message:', error)
+    }
+  }
+
+  private handleBinaryAudioBuffer(audioData: ArrayBuffer): void {
+    // Binary messages from Deepgram are audio data for playback
+    // Queue it directly for playback
+    if (audioData.byteLength > 0) {
+      this.audioQueue.push(audioData)
+      if (!this.isPlaying) {
+        this.playNextInQueue()
+      }
     }
   }
 
