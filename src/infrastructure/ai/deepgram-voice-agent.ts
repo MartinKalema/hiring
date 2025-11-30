@@ -162,9 +162,10 @@ export class DeepgramVoiceAgent {
         }
       })
 
-      // Single AudioContext for both capture and playback (simplified approach)
-      // Using default sample rate (usually 48kHz on modern browsers)
-      this.audioContext = new AudioContext()
+      // Create AudioContext at 24kHz to match Deepgram's Aura TTS output
+      // This eliminates resampling artifacts - audio plays at native rate
+      // Per Deepgram's official aura-2-browser-live demo
+      this.audioContext = new AudioContext({ sampleRate: this.OUTPUT_SAMPLE_RATE })
       console.log('[Deepgram] AudioContext sample rate:', this.audioContext.sampleRate)
 
       // Create analyzer for volume visualization (like official demo)
