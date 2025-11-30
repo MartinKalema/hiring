@@ -149,8 +149,9 @@ export class DeepgramVoiceAgent {
         }
       })
 
-      // Initialize audio context - use default sample rate for output playback
-      this.audioContext = new AudioContext()
+      // Initialize audio context with 24000 Hz sample rate to match Deepgram's expected input format
+      // This is critical - if the sample rate doesn't match what we tell Deepgram, VAD won't detect speech
+      this.audioContext = new AudioContext({ sampleRate: 24000 })
 
       // Connect to Deepgram Voice Agent WebSocket V1 with API key via Sec-WebSocket-Protocol header
       // Browser WebSockets can't set custom headers, so we use the subprotocol parameter
@@ -280,9 +281,12 @@ export class DeepgramVoiceAgent {
   private startAudioCapture(): void {
     if (!this.audioContext || !this.mediaStream) return
 
+    console.log('[Deepgram] Starting audio capture, AudioContext sample rate:', this.audioContext.sampleRate)
+
     this.mediaStreamSource = this.audioContext.createMediaStreamSource(this.mediaStream)
     this.audioProcessor = this.audioContext.createScriptProcessor(4096, 1, 1)
 
+    let audioChunkCount = 0
     this.audioProcessor.onaudioprocess = (event) => {
       if (this.ws?.readyState !== WebSocket.OPEN) return
       if (this.agentState === 'speaking') return  // Don't send audio while agent is speaking
@@ -293,10 +297,17 @@ export class DeepgramVoiceAgent {
       // Send raw binary audio data (not JSON-wrapped)
       // Deepgram Voice Agent expects binary messages for audio
       this.ws.send(int16Data.buffer)
+
+      // Log every 50 chunks (~8 seconds) to confirm audio is being sent
+      audioChunkCount++
+      if (audioChunkCount % 50 === 1) {
+        console.log('[Deepgram] Sending audio chunk', audioChunkCount, '- agentState:', this.agentState)
+      }
     }
 
     this.mediaStreamSource.connect(this.audioProcessor)
     this.audioProcessor.connect(this.audioContext.destination)
+    console.log('[Deepgram] Audio capture started')
   }
 
   private handleMessage(data: string): void {
