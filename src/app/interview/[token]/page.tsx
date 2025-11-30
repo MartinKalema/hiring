@@ -56,6 +56,11 @@ export default function InterviewPage() {
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
   const [transcript, setTranscript] = useState<Array<{ speaker: 'ai' | 'user', text: string, timestamp: number }>>([])
   const [currentAgentText, setCurrentAgentText] = useState('')
+  const [displayedText, setDisplayedText] = useState('')  // Text revealed word by word
+  const [isRevealingText, setIsRevealingText] = useState(false)  // Whether text is being revealed
+  const targetTextRef = useRef('')  // Full text to reveal
+  const wordIndexRef = useRef(0)    // Current word position
+  const wordRevealIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [timeWarningGiven, setTimeWarningGiven] = useState(false)
@@ -168,6 +173,57 @@ ${timeInstructions}
 Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, explaining you'll be conducting their interview for the ${interviewConfig.jobTitle} role at ${interviewConfig.companyName}. Mention the interview will take about ${interviewConfig.maxDuration} minutes and ask if they're ready to get started.`
   }, [candidateInfo.firstName, candidateInfo.lastName, interviewConfig.jobTitle, interviewConfig.companyName, interviewConfig.maxDuration, elapsedTime, remainingMinutes, isTimeWarning, isTimeCritical])
 
+  // Start word-by-word reveal animation
+  const startWordReveal = useCallback((text: string) => {
+    // Clear any existing interval
+    if (wordRevealIntervalRef.current) {
+      clearInterval(wordRevealIntervalRef.current)
+    }
+
+    targetTextRef.current = text
+    wordIndexRef.current = 0
+    setDisplayedText('')
+    setIsRevealingText(true)
+
+    const words = text.split(/\s+/)
+    if (words.length === 0) {
+      setIsRevealingText(false)
+      return
+    }
+
+    // Calculate reveal speed based on text length
+    // Aim for ~150 words per minute speaking rate (average human speech)
+    // That's ~400ms per word, but we'll go slightly faster for better UX
+    const msPerWord = 200
+
+    wordRevealIntervalRef.current = setInterval(() => {
+      wordIndexRef.current++
+      const currentWords = words.slice(0, wordIndexRef.current)
+      setDisplayedText(currentWords.join(' '))
+
+      if (wordIndexRef.current >= words.length) {
+        if (wordRevealIntervalRef.current) {
+          clearInterval(wordRevealIntervalRef.current)
+          wordRevealIntervalRef.current = null
+        }
+        setIsRevealingText(false)
+      }
+    }, msPerWord)
+  }, [])
+
+  // Stop word reveal and show full text immediately
+  const stopWordReveal = useCallback(() => {
+    if (wordRevealIntervalRef.current) {
+      clearInterval(wordRevealIntervalRef.current)
+      wordRevealIntervalRef.current = null
+    }
+    setIsRevealingText(false)
+    // Show full text when stopped
+    if (targetTextRef.current) {
+      setDisplayedText(targetTextRef.current)
+    }
+  }, [])
+
   const voiceAgent = useVoiceAgent({
     apiKey: voiceConfig?.apiKey || '',
     instructions: voiceConfig?.instructions || buildInstructions(),
@@ -181,6 +237,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
     },
     onAgentUtterance: (text) => {
       setCurrentAgentText(text)
+      // Start word-by-word reveal animation
+      startWordReveal(text)
       if (text.trim()) {
         setTranscript(prev => {
           // Avoid duplicates
@@ -293,6 +351,23 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
       setTimeWarningGiven(true)
     }
   }, [stage, isTimeWarning, timeWarningGiven, voiceAgent])
+
+  // Cleanup word reveal interval on unmount
+  useEffect(() => {
+    return () => {
+      if (wordRevealIntervalRef.current) {
+        clearInterval(wordRevealIntervalRef.current)
+      }
+    }
+  }, [])
+
+  // Stop word reveal when agent stops speaking
+  useEffect(() => {
+    if (!voiceAgent.isSpeaking && isRevealingText) {
+      // Agent stopped speaking, show full text immediately
+      stopWordReveal()
+    }
+  }, [voiceAgent.isSpeaking, isRevealingText, stopWordReveal])
 
   // Start recording when interview begins
   useEffect(() => {
@@ -826,11 +901,15 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
   // Active Interview Screen
   return (
     <div className="interview-active min-h-screen flex flex-col">
-      {/* Top - AI transcript text */}
+      {/* Top - AI transcript text (revealed word by word) */}
       <div className="flex-shrink-0 p-6 md:p-8 pt-12">
         <div className="max-w-4xl mx-auto">
-          <p className="text-lg md:text-xl leading-relaxed text-gray-800 animate-fade-in">
-            {currentAgentText || 'Welcome to your interview...'}
+          <p className="text-lg md:text-xl leading-relaxed text-gray-800">
+            {displayedText || 'Welcome to your interview...'}
+            {/* Blinking cursor while text is being revealed */}
+            {isRevealingText && (
+              <span className="inline-block w-0.5 h-6 ml-1 bg-blue-500 animate-pulse align-middle" />
+            )}
           </p>
         </div>
       </div>

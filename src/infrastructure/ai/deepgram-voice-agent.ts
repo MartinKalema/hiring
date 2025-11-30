@@ -118,8 +118,9 @@ export class DeepgramVoiceAgent {
   private callbacks: AgentCallbacks
   private apiKey: string
 
-  // Audio playback settings - match what we request from Deepgram (per docs: output 16000)
-  private readonly OUTPUT_SAMPLE_RATE = 16000
+  // Audio playback settings - match AudioContext sample rate to avoid resampling artifacts
+  // Both input and output use 24000 Hz for consistent playback quality
+  private readonly OUTPUT_SAMPLE_RATE = 24000
 
   constructor(
     apiKey: string,
@@ -219,7 +220,7 @@ export class DeepgramVoiceAgent {
         },
         output: {
           encoding: 'linear16',
-          sample_rate: this.OUTPUT_SAMPLE_RATE,  // Per docs: output sample_rate: 16000
+          sample_rate: this.OUTPUT_SAMPLE_RATE,  // 24000 Hz to match AudioContext and avoid resampling artifacts
           container: 'wav'  // WAV container required for browser playback
         }
       },

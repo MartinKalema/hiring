@@ -65,8 +65,8 @@ Start by greeting ${candidateFirstName}, introducing yourself as AIR, explaining
       instructions,
       config: {
         voice: 'aura-2-thalia-en',  // Per Deepgram docs
-        thinkModel: 'gpt-4o-mini',  // Per Deepgram docs
-        thinkProvider: 'open_ai',  // Per Deepgram docs
+        thinkModel: 'claude-sonnet-4-20250514',  // Claude Sonnet 4
+        thinkProvider: 'anthropic',  // Use Anthropic/Claude
         maxDuration,
         language: 'en',
         greeting,  // Initial greeting from the AI interviewer
