@@ -57,15 +57,19 @@ Start by greeting ${candidateFirstName}, introducing yourself as AIR, explaining
       return NextResponse.json({ error: 'Voice service not configured' }, { status: 503 })
     }
 
+    // Build greeting message for the AI interviewer
+    const greeting = `Hello ${candidateFirstName}! I'm AIR, your AI interviewer today. I'll be conducting a demo interview for the ${jobTitle} position at ${companyName}. This interview will take about ${maxDuration} minutes. Before we dive into the questions, could you tell me a little about yourself and what interests you about this role?`
+
     return NextResponse.json({
       apiKey: deepgramApiKey,
       instructions,
       config: {
-        voice: 'aura-asteria-en',
-        thinkModel: 'claude-3-5-sonnet',
-        thinkProvider: 'anthropic',
+        voice: 'aura-2-thalia-en',  // Per Deepgram docs
+        thinkModel: 'gpt-4o-mini',  // Per Deepgram docs
+        thinkProvider: 'open_ai',  // Per Deepgram docs
         maxDuration,
         language: 'en',
+        greeting,  // Initial greeting from the AI interviewer
       },
       interview: {
         jobTitle,

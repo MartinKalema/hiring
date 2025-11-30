@@ -248,6 +248,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         voice: data.config.voice,
         thinkModel: data.config.thinkModel,
         thinkProvider: data.config.thinkProvider,
+        language: data.config.language,
+        greeting: data.config.greeting,
       })
       setStage('active')
     } catch (error) {
