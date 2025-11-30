@@ -16,6 +16,7 @@ export interface UseVoiceAgentOptions {
   thinkProvider?: string
   language?: string
   greeting?: string
+  speechSpeed?: number  // Playback speed (1.0 = normal, 1.2 = 20% faster)
   onTranscript?: (text: string, isFinal: boolean) => void
   onAgentUtterance?: (text: string) => void
   onError?: (error: Error) => void
@@ -29,6 +30,7 @@ export interface ConnectOptions {
   thinkProvider?: string
   language?: string
   greeting?: string
+  speechSpeed?: number  // Playback speed (1.0 = normal, 1.2 = 20% faster)
 }
 
 export interface UseVoiceAgentReturn {
@@ -73,6 +75,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'open_ai'  // Per docs
     const language = overrides?.language || options.language || 'en'  // Per docs
     const greeting = overrides?.greeting || options.greeting
+    const speechSpeed = overrides?.speechSpeed || options.speechSpeed || 1.15  // Default 15% faster
 
     if (!apiKey) {
       const error = new Error('API key is required to connect')
@@ -88,6 +91,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
       thinkProvider,
       language,
       greeting,
+      speechSpeed,
     }
 
     const agent = new DeepgramVoiceAgent(apiKey, agentOptions, {
