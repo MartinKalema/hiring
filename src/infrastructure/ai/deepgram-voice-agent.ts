@@ -130,9 +130,8 @@ export class DeepgramVoiceAgent {
   private apiKey: string
 
   // Audio settings - matching official Deepgram demo exactly
-  // Input: capture at 48kHz (browser default), downsample to 16kHz for Deepgram
-  private readonly INPUT_SAMPLE_RATE = 16000  // What we send to Deepgram
-  private readonly MIC_SAMPLE_RATE = 48000    // Browser's native mic rate (assumed)
+  // Input: We use the ACTUAL AudioContext sample rate (not hardcoded) for correct downsampling
+  private readonly INPUT_SAMPLE_RATE = 16000  // What we send to Deepgram (after downsampling)
   // Output: Use Deepgram's native Aura TTS sample rate (24kHz)
   private readonly OUTPUT_SAMPLE_RATE = 24000
 
@@ -179,7 +178,11 @@ export class DeepgramVoiceAgent {
       console.log('[Deepgram] Microphone AudioContext sample rate:', this.microphoneAudioContext.sampleRate)
 
       // 2. Playback AudioContext - at 24kHz to match Deepgram's Aura TTS output
-      this.playbackAudioContext = new AudioContext({ sampleRate: this.OUTPUT_SAMPLE_RATE })
+      // Use latencyHint: "interactive" for lower latency (like official Deepgram demo)
+      this.playbackAudioContext = new AudioContext({
+        sampleRate: this.OUTPUT_SAMPLE_RATE,
+        latencyHint: 'interactive'
+      })
       console.log('[Deepgram] Playback AudioContext sample rate:', this.playbackAudioContext.sampleRate)
 
       // Create analyzer for volume visualization on playback context
@@ -195,6 +198,9 @@ export class DeepgramVoiceAgent {
       const wsUrl = 'wss://agent.deepgram.com/v1/agent/converse'
       console.log('[Deepgram] Connecting to Voice Agent...')
       this.ws = new WebSocket(wsUrl, ['token', this.apiKey])
+      // CRITICAL: Set binaryType to receive audio as ArrayBuffer directly (like official Deepgram demo)
+      // Without this, audio comes as Blob which requires async conversion and can cause timing issues
+      this.ws.binaryType = 'arraybuffer'
 
       this.ws.onopen = () => {
         this.sendSettings()
@@ -205,15 +211,13 @@ export class DeepgramVoiceAgent {
       }
 
       this.ws.onmessage = (event) => {
-        // Handle both binary (Blob) and text (JSON) messages
-        if (event.data instanceof Blob) {
+        // With binaryType='arraybuffer', binary data comes as ArrayBuffer directly (faster, no async conversion)
+        if (event.data instanceof ArrayBuffer) {
           // Binary data is audio from the agent
-          this.handleBinaryMessage(event.data)
-        } else if (typeof event.data === 'string') {
-          this.handleMessage(event.data)
-        } else if (event.data instanceof ArrayBuffer) {
-          // ArrayBuffer is also binary audio data
           this.handleBinaryAudioBuffer(event.data)
+        } else if (typeof event.data === 'string') {
+          // JSON text messages (transcripts, events, etc.)
+          this.handleMessage(event.data)
         } else {
           console.warn('[Deepgram] Unknown message type:', typeof event.data)
         }
@@ -312,10 +316,11 @@ export class DeepgramVoiceAgent {
   private startAudioCapture(): void {
     if (!this.microphoneAudioContext || !this.mediaStream) return
 
-    // Use the microphone AudioContext's sample rate for capture
-    // This is typically 48kHz on most browsers
-    const nativeSampleRate = this.microphoneAudioContext.sampleRate
-    console.log('[Deepgram] Starting audio capture, mic context sample rate:', nativeSampleRate)
+    // Use the ACTUAL microphone AudioContext's sample rate for capture
+    // This is typically 48kHz on most browsers, but can be 44100 or other rates
+    // Using the actual rate is critical for correct downsampling!
+    const actualMicSampleRate = this.microphoneAudioContext.sampleRate
+    console.log('[Deepgram] Starting audio capture, mic context sample rate:', actualMicSampleRate)
 
     this.mediaStreamSource = this.microphoneAudioContext.createMediaStreamSource(this.mediaStream)
     this.audioProcessor = this.microphoneAudioContext.createScriptProcessor(4096, 1, 1)
@@ -326,9 +331,9 @@ export class DeepgramVoiceAgent {
 
       const inputData = event.inputBuffer.getChannelData(0)
 
-      // Downsample from 48kHz to 16kHz (matching official Deepgram demo exactly)
-      // Official demo hardcodes 48000 as source rate
-      const downsampledData = this.downsample(inputData, this.MIC_SAMPLE_RATE, this.INPUT_SAMPLE_RATE)
+      // Downsample from ACTUAL mic sample rate to 16kHz
+      // Use the actual rate from AudioContext, not hardcoded 48000!
+      const downsampledData = this.downsample(inputData, actualMicSampleRate, this.INPUT_SAMPLE_RATE)
       const int16Data = this.floatTo16BitPCM(downsampledData)
 
       // Send raw binary audio data
@@ -469,15 +474,6 @@ export class DeepgramVoiceAgent {
       }
     } catch (error) {
       console.error('[Deepgram] Error parsing message:', error)
-    }
-  }
-
-  private async handleBinaryMessage(blob: Blob): Promise<void> {
-    try {
-      const arrayBuffer = await blob.arrayBuffer()
-      this.handleBinaryAudioBuffer(arrayBuffer)
-    } catch (error) {
-      console.error('[Deepgram] Error handling binary message:', error)
     }
   }
 
