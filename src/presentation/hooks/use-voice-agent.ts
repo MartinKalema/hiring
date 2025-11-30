@@ -75,7 +75,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'open_ai'  // Per docs
     const language = overrides?.language || options.language || 'en'  // Per docs
     const greeting = overrides?.greeting || options.greeting
-    const speechSpeed = overrides?.speechSpeed || options.speechSpeed || 1.15  // Default 15% faster
+    const speechSpeed = overrides?.speechSpeed || options.speechSpeed || 1.0  // Default normal speed to avoid artifacts
 
     if (!apiKey) {
       const error = new Error('API key is required to connect')

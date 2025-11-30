@@ -115,6 +115,10 @@ export class DeepgramVoiceAgent {
   private isPlaying = false
   private keepAliveInterval: NodeJS.Timeout | null = null
 
+  // Audio processing nodes for smoother playback
+  private gainNode: GainNode | null = null
+  private lowPassFilter: BiquadFilterNode | null = null
+
   private connectionState: ConnectionState = 'disconnected'
   private agentState: AgentState = 'idle'
 
@@ -126,8 +130,11 @@ export class DeepgramVoiceAgent {
   // Input sample rate must be 24000 Hz for Deepgram's VAD and STT
   // Output sample rate from Deepgram (we'll resample to playback context's native rate)
   private readonly OUTPUT_SAMPLE_RATE = 24000
-  // Speech playback speed (1.0 = normal, 1.2 = 20% faster)
+  // Speech playback speed (1.0 = normal) - avoid artifacts by not changing speed
   private speechSpeed: number = 1.0
+
+  // Track last audio buffer end time for seamless playback
+  private lastAudioEndTime: number = 0
 
   constructor(
     apiKey: string,
@@ -167,6 +174,24 @@ export class DeepgramVoiceAgent {
       // This avoids resampling artifacts that cause electric/buzzing sounds
       this.playbackContext = new AudioContext()
       console.log('[Deepgram] Playback context sample rate:', this.playbackContext.sampleRate)
+
+      // Set up audio processing chain to reduce artifacts
+      // Low-pass filter to remove high-frequency noise/artifacts from resampling
+      this.lowPassFilter = this.playbackContext.createBiquadFilter()
+      this.lowPassFilter.type = 'lowpass'
+      this.lowPassFilter.frequency.value = 8000  // Cut frequencies above 8kHz (speech is mostly below this)
+      this.lowPassFilter.Q.value = 0.7  // Gentle rolloff
+
+      // Gain node for volume control and fade-in/out
+      this.gainNode = this.playbackContext.createGain()
+      this.gainNode.gain.value = 1.0
+
+      // Connect: filter -> gain -> destination
+      this.lowPassFilter.connect(this.gainNode)
+      this.gainNode.connect(this.playbackContext.destination)
+
+      // Reset audio timing
+      this.lastAudioEndTime = 0
 
       // Connect to Deepgram Voice Agent WebSocket V1 with API key via Sec-WebSocket-Protocol header
       // Browser WebSockets can't set custom headers, so we use the subprotocol parameter
@@ -464,8 +489,9 @@ export class DeepgramVoiceAgent {
   }
 
   private async playNextInQueue(): Promise<void> {
-    if (this.audioQueue.length === 0 || !this.playbackContext) {
+    if (this.audioQueue.length === 0 || !this.playbackContext || !this.lowPassFilter) {
       this.isPlaying = false
+      this.lastAudioEndTime = 0  // Reset timing when queue is empty
       return
     }
 
@@ -495,11 +521,21 @@ export class DeepgramVoiceAgent {
 
       const source = this.playbackContext.createBufferSource()
       source.buffer = audioBuffer
-      // Apply speech speed (1.0 = normal, higher = faster)
-      source.playbackRate.value = this.speechSpeed
-      source.connect(this.playbackContext.destination)
+      // Keep playback at normal speed to avoid artifacts
+      source.playbackRate.value = 1.0
+
+      // Connect through the audio processing chain (filter -> gain -> destination)
+      source.connect(this.lowPassFilter)
+
+      // Schedule playback to avoid gaps/overlaps
+      const currentTime = this.playbackContext.currentTime
+      const startTime = Math.max(currentTime, this.lastAudioEndTime)
+
+      // Update end time for next chunk
+      this.lastAudioEndTime = startTime + audioBuffer.duration
+
       source.onended = () => this.playNextInQueue()
-      source.start()
+      source.start(startTime)
     } catch (error) {
       console.error('[Deepgram] Error playing audio:', error)
       // Try next audio chunk
@@ -507,23 +543,41 @@ export class DeepgramVoiceAgent {
     }
   }
 
-  // Convert raw linear16 PCM data to AudioBuffer
+  // Convert raw linear16 PCM data to AudioBuffer with proper resampling
   private pcmToAudioBuffer(pcmData: ArrayBuffer): AudioBuffer {
     const int16Array = new Int16Array(pcmData)
     const numSamples = int16Array.length
 
-    // Create AudioBuffer at the output sample rate (24000 Hz)
-    // The playback context will resample this to its native rate automatically
+    // Get the playback context's native sample rate
+    const nativeSampleRate = this.playbackContext!.sampleRate
+    const inputSampleRate = this.OUTPUT_SAMPLE_RATE  // 24000 Hz from Deepgram
+
+    // Calculate resampled length
+    const resampleRatio = nativeSampleRate / inputSampleRate
+    const resampledLength = Math.floor(numSamples * resampleRatio)
+
+    // Create AudioBuffer at the native sample rate to avoid browser resampling artifacts
     const audioBuffer = this.playbackContext!.createBuffer(
       1,  // mono channel
-      numSamples,
-      this.OUTPUT_SAMPLE_RATE
+      resampledLength,
+      nativeSampleRate
     )
 
-    // Convert int16 to float32 (range -1 to 1)
     const channelData = audioBuffer.getChannelData(0)
-    for (let i = 0; i < numSamples; i++) {
-      channelData[i] = int16Array[i] / 32768
+
+    // Linear interpolation resampling (smoother than browser's default)
+    for (let i = 0; i < resampledLength; i++) {
+      const srcIndex = i / resampleRatio
+      const srcIndexFloor = Math.floor(srcIndex)
+      const srcIndexCeil = Math.min(srcIndexFloor + 1, numSamples - 1)
+      const fraction = srcIndex - srcIndexFloor
+
+      // Get samples and convert from int16 to float32
+      const sample1 = int16Array[srcIndexFloor] / 32768
+      const sample2 = int16Array[srcIndexCeil] / 32768
+
+      // Linear interpolation between samples
+      channelData[i] = sample1 + (sample2 - sample1) * fraction
     }
 
     return audioBuffer
@@ -557,6 +611,7 @@ export class DeepgramVoiceAgent {
     this.ws.send(JSON.stringify({ type: 'Interrupt' }))
     this.audioQueue = []  // Clear audio queue
     this.isPlaying = false
+    this.lastAudioEndTime = 0  // Reset audio timing
   }
 
   disconnect(): void {
@@ -585,12 +640,22 @@ export class DeepgramVoiceAgent {
       this.audioContext.close()
       this.audioContext = null
     }
+    // Cleanup audio processing nodes
+    if (this.lowPassFilter) {
+      this.lowPassFilter.disconnect()
+      this.lowPassFilter = null
+    }
+    if (this.gainNode) {
+      this.gainNode.disconnect()
+      this.gainNode = null
+    }
     if (this.playbackContext) {
       this.playbackContext.close()
       this.playbackContext = null
     }
     this.audioQueue = []
     this.isPlaying = false
+    this.lastAudioEndTime = 0
   }
 
   private setConnectionState(state: ConnectionState): void {
