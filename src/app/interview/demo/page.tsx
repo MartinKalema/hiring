@@ -43,6 +43,8 @@ export default function DemoInterviewPage() {
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
   const [transcript, setTranscript] = useState<Array<{ speaker: 'ai' | 'user', text: string, timestamp: number }>>([])
   const [currentAgentText, setCurrentAgentText] = useState('')
+  const [displayedText, setDisplayedText] = useState('')
+  const [isRevealingText, setIsRevealingText] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null)
@@ -50,6 +52,11 @@ export default function DemoInterviewPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Refs for word-by-word text reveal
+  const targetTextRef = useRef('')
+  const wordIndexRef = useRef(0)
+  const wordRevealIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Demo interview configuration
   const interviewConfig = {
@@ -83,6 +90,58 @@ Maximum duration: ${interviewConfig.maxDuration} minutes
 Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and asking if they're ready to get started.`
   }, [candidateInfo.firstName, candidateInfo.lastName])
 
+  // Word-by-word text reveal - shows text progressively as the agent speaks
+  const startWordReveal = useCallback((text: string) => {
+    // Clear any existing interval
+    if (wordRevealIntervalRef.current) {
+      clearInterval(wordRevealIntervalRef.current)
+    }
+
+    // Store the full text and reset index
+    targetTextRef.current = text
+    wordIndexRef.current = 0
+    setIsRevealingText(true)
+    setDisplayedText('')
+
+    // Split text into words
+    const words = text.split(/\s+/)
+    if (words.length === 0) {
+      setDisplayedText(text)
+      setIsRevealingText(false)
+      return
+    }
+
+    // Reveal words at ~240 words per minute (250ms per word)
+    const msPerWord = 250
+
+    wordRevealIntervalRef.current = setInterval(() => {
+      wordIndexRef.current++
+      const currentWords = words.slice(0, wordIndexRef.current)
+      setDisplayedText(currentWords.join(' '))
+
+      // Stop when all words are revealed
+      if (wordIndexRef.current >= words.length) {
+        if (wordRevealIntervalRef.current) {
+          clearInterval(wordRevealIntervalRef.current)
+          wordRevealIntervalRef.current = null
+        }
+        setIsRevealingText(false)
+      }
+    }, msPerWord)
+  }, [])
+
+  const stopWordReveal = useCallback(() => {
+    if (wordRevealIntervalRef.current) {
+      clearInterval(wordRevealIntervalRef.current)
+      wordRevealIntervalRef.current = null
+    }
+    // Show full text when stopping
+    if (targetTextRef.current) {
+      setDisplayedText(targetTextRef.current)
+    }
+    setIsRevealingText(false)
+  }, [])
+
   // Voice agent hook - connected to real Deepgram API
   const voiceAgent = useVoiceAgent({
     apiKey: voiceConfig?.apiKey || '',
@@ -97,6 +156,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     },
     onAgentUtterance: (text) => {
       setCurrentAgentText(text)
+      // Start word-by-word reveal
+      startWordReveal(text)
       if (text.trim()) {
         setTranscript(prev => {
           // Avoid duplicates
@@ -107,6 +168,10 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
           return [...prev, { speaker: 'ai', text, timestamp: elapsedTime }]
         })
       }
+    },
+    onAgentStoppedSpeaking: () => {
+      // Stop word reveal and show full text when agent stops
+      stopWordReveal()
     },
     onError: (error) => {
       console.error('Demo interview error:', error)
@@ -649,8 +714,11 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
       {/* Top - AI transcript text */}
       <div className="flex-shrink-0 p-6 md:p-8 pt-12">
         <div className="max-w-4xl mx-auto">
-          <p className="text-lg md:text-xl leading-relaxed text-gray-800 animate-fade-in">
-            {currentAgentText || 'Welcome to your interview...'}
+          <p className="text-lg md:text-xl leading-relaxed text-gray-800">
+            {displayedText || 'Welcome to your interview...'}
+            {isRevealingText && (
+              <span className="inline-block w-0.5 h-6 ml-1 bg-blue-500 animate-pulse align-middle" />
+            )}
           </p>
         </div>
       </div>

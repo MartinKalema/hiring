@@ -118,6 +118,7 @@ export class DeepgramVoiceAgent {
   // Audio processing nodes for smoother playback
   private gainNode: GainNode | null = null
   private lowPassFilter: BiquadFilterNode | null = null
+  private highPassFilter: BiquadFilterNode | null = null  // Remove DC offset and low-frequency hum
 
   private connectionState: ConnectionState = 'disconnected'
   private agentState: AgentState = 'idle'
@@ -176,17 +177,24 @@ export class DeepgramVoiceAgent {
       console.log('[Deepgram] Playback context sample rate:', this.playbackContext.sampleRate)
 
       // Set up audio processing chain to reduce artifacts
+      // High-pass filter to remove DC offset and low-frequency hum (below 80Hz)
+      this.highPassFilter = this.playbackContext.createBiquadFilter()
+      this.highPassFilter.type = 'highpass'
+      this.highPassFilter.frequency.value = 80  // Cut frequencies below 80Hz (removes hum)
+      this.highPassFilter.Q.value = 0.7  // Gentle rolloff
+
       // Low-pass filter to remove high-frequency noise/artifacts from resampling
       this.lowPassFilter = this.playbackContext.createBiquadFilter()
       this.lowPassFilter.type = 'lowpass'
-      this.lowPassFilter.frequency.value = 8000  // Cut frequencies above 8kHz (speech is mostly below this)
-      this.lowPassFilter.Q.value = 0.7  // Gentle rolloff
+      this.lowPassFilter.frequency.value = 7500  // Slightly lower cutoff to reduce more artifacts
+      this.lowPassFilter.Q.value = 0.5  // Even gentler rolloff to avoid ringing
 
-      // Gain node for volume control and fade-in/out
+      // Gain node for volume control
       this.gainNode = this.playbackContext.createGain()
       this.gainNode.gain.value = 1.0
 
-      // Connect: filter -> gain -> destination
+      // Connect: highPass -> lowPass -> gain -> destination
+      this.highPassFilter.connect(this.lowPassFilter)
       this.lowPassFilter.connect(this.gainNode)
       this.gainNode.connect(this.playbackContext.destination)
 
@@ -489,7 +497,7 @@ export class DeepgramVoiceAgent {
   }
 
   private async playNextInQueue(): Promise<void> {
-    if (this.audioQueue.length === 0 || !this.playbackContext || !this.lowPassFilter) {
+    if (this.audioQueue.length === 0 || !this.playbackContext || !this.highPassFilter) {
       this.isPlaying = false
       this.lastAudioEndTime = 0  // Reset timing when queue is empty
       return
@@ -524,8 +532,8 @@ export class DeepgramVoiceAgent {
       // Keep playback at normal speed to avoid artifacts
       source.playbackRate.value = 1.0
 
-      // Connect through the audio processing chain (filter -> gain -> destination)
-      source.connect(this.lowPassFilter)
+      // Connect through the audio processing chain (highPass -> lowPass -> gain -> destination)
+      source.connect(this.highPassFilter)
 
       // Schedule playback to avoid gaps/overlaps
       const currentTime = this.playbackContext.currentTime
@@ -565,19 +573,33 @@ export class DeepgramVoiceAgent {
 
     const channelData = audioBuffer.getChannelData(0)
 
-    // Linear interpolation resampling (smoother than browser's default)
+    // Helper function to get sample at index (clamped, converted to float)
+    const getSample = (index: number): number => {
+      const clampedIndex = Math.max(0, Math.min(numSamples - 1, index))
+      return int16Array[clampedIndex] / 32768
+    }
+
+    // Cubic interpolation resampling (smoother than linear, reduces artifacts)
     for (let i = 0; i < resampledLength; i++) {
       const srcIndex = i / resampleRatio
       const srcIndexFloor = Math.floor(srcIndex)
-      const srcIndexCeil = Math.min(srcIndexFloor + 1, numSamples - 1)
       const fraction = srcIndex - srcIndexFloor
 
-      // Get samples and convert from int16 to float32
-      const sample1 = int16Array[srcIndexFloor] / 32768
-      const sample2 = int16Array[srcIndexCeil] / 32768
+      // Get 4 samples for cubic interpolation
+      const s0 = getSample(srcIndexFloor - 1)
+      const s1 = getSample(srcIndexFloor)
+      const s2 = getSample(srcIndexFloor + 1)
+      const s3 = getSample(srcIndexFloor + 2)
 
-      // Linear interpolation between samples
-      channelData[i] = sample1 + (sample2 - sample1) * fraction
+      // Cubic Hermite interpolation (Catmull-Rom spline)
+      const a0 = -0.5 * s0 + 1.5 * s1 - 1.5 * s2 + 0.5 * s3
+      const a1 = s0 - 2.5 * s1 + 2 * s2 - 0.5 * s3
+      const a2 = -0.5 * s0 + 0.5 * s2
+      const a3 = s1
+
+      // Evaluate cubic polynomial
+      const t = fraction
+      channelData[i] = a0 * t * t * t + a1 * t * t + a2 * t + a3
     }
 
     return audioBuffer
@@ -641,6 +663,10 @@ export class DeepgramVoiceAgent {
       this.audioContext = null
     }
     // Cleanup audio processing nodes
+    if (this.highPassFilter) {
+      this.highPassFilter.disconnect()
+      this.highPassFilter = null
+    }
     if (this.lowPassFilter) {
       this.lowPassFilter.disconnect()
       this.lowPassFilter = null

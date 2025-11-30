@@ -19,6 +19,7 @@ export interface UseVoiceAgentOptions {
   speechSpeed?: number  // Playback speed (1.0 = normal, 1.2 = 20% faster)
   onTranscript?: (text: string, isFinal: boolean) => void
   onAgentUtterance?: (text: string) => void
+  onAgentStoppedSpeaking?: () => void
   onError?: (error: Error) => void
 }
 
@@ -108,6 +109,9 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
       onAgentUtterance: (text) => {
         setAgentText(text)
         options.onAgentUtterance?.(text)
+      },
+      onAudioPlaybackEnd: () => {
+        options.onAgentStoppedSpeaking?.()
       },
       onError: (error) => {
         console.error('Voice agent error:', error)
