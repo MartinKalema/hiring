@@ -61,11 +61,12 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     }
 
     // Use overrides if provided, otherwise fall back to hook options
+    // Defaults match Deepgram Voice Agent documentation
     const apiKey = overrides?.apiKey || options.apiKey
     const instructions = overrides?.instructions || options.instructions
-    const voice = overrides?.voice || options.voice || 'aura-asteria-en'
-    const thinkModel = overrides?.thinkModel || options.thinkModel || 'claude-3-5-sonnet'
-    const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'anthropic'
+    const voice = overrides?.voice || options.voice || 'aura-2-thalia-en'  // Per docs
+    const thinkModel = overrides?.thinkModel || options.thinkModel || 'gpt-4o-mini'  // Per docs
+    const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'open_ai'  // Per docs
 
     if (!apiKey) {
       const error = new Error('API key is required to connect')
