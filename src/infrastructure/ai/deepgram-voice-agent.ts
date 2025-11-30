@@ -127,8 +127,9 @@ export class DeepgramVoiceAgent {
   // Audio settings - simplified to match official Deepgram demo
   // Input: capture at 48kHz (browser default), downsample to 16kHz for Deepgram
   private readonly INPUT_SAMPLE_RATE = 16000  // What we send to Deepgram
-  // Output: Deepgram sends 24kHz audio
-  private readonly OUTPUT_SAMPLE_RATE = 24000
+  // Output: Request 48kHz to match browser's default AudioContext sample rate
+  // This avoids resampling artifacts (electric interference/buzzing)
+  private readonly OUTPUT_SAMPLE_RATE = 48000
 
   // Track last audio buffer end time for seamless playback
   private lastAudioEndTime: number = 0
