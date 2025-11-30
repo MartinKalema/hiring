@@ -41,6 +41,9 @@ export interface AgentOptions {
 
   // Conversation context (for continuing conversations)
   context?: Array<{ role: 'user' | 'assistant', content: string }>
+
+  // Speech playback speed (1.0 = normal, 1.2 = 20% faster, etc.)
+  speechSpeed?: number  // default: 1.0
 }
 
 export interface AgentCallbacks {
@@ -103,7 +106,8 @@ interface InjectMessage {
 
 export class DeepgramVoiceAgent {
   private ws: WebSocket | null = null
-  private audioContext: AudioContext | null = null
+  private audioContext: AudioContext | null = null  // For microphone capture (24000 Hz)
+  private playbackContext: AudioContext | null = null  // For audio playback (native sample rate)
   private mediaStream: MediaStream | null = null
   private audioProcessor: ScriptProcessorNode | null = null
   private mediaStreamSource: MediaStreamAudioSourceNode | null = null
@@ -118,9 +122,12 @@ export class DeepgramVoiceAgent {
   private callbacks: AgentCallbacks
   private apiKey: string
 
-  // Audio playback settings - match AudioContext sample rate to avoid resampling artifacts
-  // Both input and output use 24000 Hz for consistent playback quality
+  // Audio settings
+  // Input sample rate must be 24000 Hz for Deepgram's VAD and STT
+  // Output sample rate from Deepgram (we'll resample to playback context's native rate)
   private readonly OUTPUT_SAMPLE_RATE = 24000
+  // Speech playback speed (1.0 = normal, 1.2 = 20% faster)
+  private speechSpeed: number = 1.0
 
   constructor(
     apiKey: string,
@@ -130,6 +137,8 @@ export class DeepgramVoiceAgent {
     this.apiKey = apiKey
     this.options = options
     this.callbacks = callbacks
+    // Set speech speed (default 1.0, recommended 1.1-1.3 for faster speech)
+    this.speechSpeed = options.speechSpeed || 1.0
   }
 
   async connect(): Promise<void> {
@@ -153,6 +162,11 @@ export class DeepgramVoiceAgent {
       // Initialize audio context with 24000 Hz sample rate to match Deepgram's expected input format
       // This is critical - if the sample rate doesn't match what we tell Deepgram, VAD won't detect speech
       this.audioContext = new AudioContext({ sampleRate: 24000 })
+
+      // Create a separate playback context at the browser's native sample rate
+      // This avoids resampling artifacts that cause electric/buzzing sounds
+      this.playbackContext = new AudioContext()
+      console.log('[Deepgram] Playback context sample rate:', this.playbackContext.sampleRate)
 
       // Connect to Deepgram Voice Agent WebSocket V1 with API key via Sec-WebSocket-Protocol header
       // Browser WebSockets can't set custom headers, so we use the subprotocol parameter
@@ -430,8 +444,8 @@ export class DeepgramVoiceAgent {
   }
 
   private async playAudio(base64Audio: string): Promise<void> {
-    if (!this.audioContext) {
-      console.warn('[Deepgram] No audio context for playback')
+    if (!this.playbackContext) {
+      console.warn('[Deepgram] No playback context for audio')
       return
     }
 
@@ -450,7 +464,7 @@ export class DeepgramVoiceAgent {
   }
 
   private async playNextInQueue(): Promise<void> {
-    if (this.audioQueue.length === 0 || !this.audioContext) {
+    if (this.audioQueue.length === 0 || !this.playbackContext) {
       this.isPlaying = false
       return
     }
@@ -459,9 +473,9 @@ export class DeepgramVoiceAgent {
     const audioData = this.audioQueue.shift()!
 
     try {
-      // Resume audio context if suspended (required by browser autoplay policies)
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume()
+      // Resume playback context if suspended (required by browser autoplay policies)
+      if (this.playbackContext.state === 'suspended') {
+        await this.playbackContext.resume()
       }
 
       let audioBuffer: AudioBuffer
@@ -472,15 +486,18 @@ export class DeepgramVoiceAgent {
 
       if (isWav) {
         // Decode WAV file using browser's decodeAudioData
-        audioBuffer = await this.audioContext.decodeAudioData(audioData.slice(0))
+        // The playback context will handle resampling to its native rate
+        audioBuffer = await this.playbackContext.decodeAudioData(audioData.slice(0))
       } else {
         // Raw linear16 PCM data - convert manually to AudioBuffer
         audioBuffer = this.pcmToAudioBuffer(audioData)
       }
 
-      const source = this.audioContext.createBufferSource()
+      const source = this.playbackContext.createBufferSource()
       source.buffer = audioBuffer
-      source.connect(this.audioContext.destination)
+      // Apply speech speed (1.0 = normal, higher = faster)
+      source.playbackRate.value = this.speechSpeed
+      source.connect(this.playbackContext.destination)
       source.onended = () => this.playNextInQueue()
       source.start()
     } catch (error) {
@@ -495,8 +512,9 @@ export class DeepgramVoiceAgent {
     const int16Array = new Int16Array(pcmData)
     const numSamples = int16Array.length
 
-    // Create AudioBuffer with the output sample rate
-    const audioBuffer = this.audioContext!.createBuffer(
+    // Create AudioBuffer at the output sample rate (24000 Hz)
+    // The playback context will resample this to its native rate automatically
+    const audioBuffer = this.playbackContext!.createBuffer(
       1,  // mono channel
       numSamples,
       this.OUTPUT_SAMPLE_RATE
@@ -566,6 +584,10 @@ export class DeepgramVoiceAgent {
     if (this.audioContext) {
       this.audioContext.close()
       this.audioContext = null
+    }
+    if (this.playbackContext) {
+      this.playbackContext.close()
+      this.playbackContext = null
     }
     this.audioQueue = []
     this.isPlaying = false
