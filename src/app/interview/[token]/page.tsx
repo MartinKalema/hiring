@@ -298,9 +298,11 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
           mediaStreamRef.current.getTracks().forEach(track => track.stop())
         }
 
+        // Only request video for preview - the voice agent handles audio separately
+        // Having two active audio streams can interfere with echo cancellation
         const constraints: MediaStreamConstraints = {
           video: selectedCamera ? { deviceId: { exact: selectedCamera } } : true,
-          audio: selectedMic ? { deviceId: { exact: selectedMic } } : true,
+          audio: false,  // Voice agent manages its own audio stream
         }
 
         const stream = await navigator.mediaDevices.getUserMedia(constraints)

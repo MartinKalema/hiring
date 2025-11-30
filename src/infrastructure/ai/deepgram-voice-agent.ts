@@ -158,7 +158,8 @@ export class DeepgramVoiceAgent {
         audio: {
           channelCount: 1,
           echoCancellation: true,
-          noiseSuppression: false,  // Disabled per official demo
+          noiseSuppression: true,  // Enable to reduce background noise and audio artifacts
+          autoGainControl: true,   // Help normalize audio levels
         }
       })
 
