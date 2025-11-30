@@ -452,8 +452,19 @@ export class DeepgramVoiceAgent {
         await this.audioContext.resume()
       }
 
-      // Decode the WAV audio data
-      const audioBuffer = await this.audioContext.decodeAudioData(audioData.slice(0))
+      let audioBuffer: AudioBuffer
+
+      // Check if data has WAV header (starts with "RIFF")
+      const header = new Uint8Array(audioData.slice(0, 4))
+      const isWav = header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46
+
+      if (isWav) {
+        // Decode WAV file using browser's decodeAudioData
+        audioBuffer = await this.audioContext.decodeAudioData(audioData.slice(0))
+      } else {
+        // Raw linear16 PCM data - convert manually to AudioBuffer
+        audioBuffer = this.pcmToAudioBuffer(audioData)
+      }
 
       const source = this.audioContext.createBufferSource()
       source.buffer = audioBuffer
@@ -465,6 +476,27 @@ export class DeepgramVoiceAgent {
       // Try next audio chunk
       this.playNextInQueue()
     }
+  }
+
+  // Convert raw linear16 PCM data to AudioBuffer
+  private pcmToAudioBuffer(pcmData: ArrayBuffer): AudioBuffer {
+    const int16Array = new Int16Array(pcmData)
+    const numSamples = int16Array.length
+
+    // Create AudioBuffer with the output sample rate
+    const audioBuffer = this.audioContext!.createBuffer(
+      1,  // mono channel
+      numSamples,
+      this.OUTPUT_SAMPLE_RATE
+    )
+
+    // Convert int16 to float32 (range -1 to 1)
+    const channelData = audioBuffer.getChannelData(0)
+    for (let i = 0; i < numSamples; i++) {
+      channelData[i] = int16Array[i] / 32768
+    }
+
+    return audioBuffer
   }
 
   // Inject a text message to the agent (as if user said it)
