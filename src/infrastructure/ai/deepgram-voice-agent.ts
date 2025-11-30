@@ -305,6 +305,13 @@ export class DeepgramVoiceAgent {
 
     let audioChunkCount = 0
     this.audioProcessor.onaudioprocess = (event) => {
+      // CRITICAL: Always zero the output buffer to prevent any garbage/noise from passing through
+      // ScriptProcessorNode output buffers may contain uninitialized data if not written to
+      const outputData = event.outputBuffer.getChannelData(0)
+      for (let i = 0; i < outputData.length; i++) {
+        outputData[i] = 0
+      }
+
       if (this.ws?.readyState !== WebSocket.OPEN) return
       if (this.agentState === 'speaking') return  // Don't send audio while agent is speaking
 
@@ -642,6 +649,21 @@ export class DeepgramVoiceAgent {
 
   private setAgentState(state: AgentState): void {
     this.agentState = state
+
+    // Mute microphone when agent is speaking to prevent any feedback/echo
+    // This completely stops the mic from picking up speaker audio
+    if (this.mediaStream) {
+      const audioTrack = this.mediaStream.getAudioTracks()[0]
+      if (audioTrack) {
+        audioTrack.enabled = state !== 'speaking'
+        if (state === 'speaking') {
+          console.log('[Deepgram] Microphone muted (agent speaking)')
+        } else if (state === 'listening') {
+          console.log('[Deepgram] Microphone unmuted (listening)')
+        }
+      }
+    }
+
     this.callbacks.onAgentStateChange?.(state)
   }
 
