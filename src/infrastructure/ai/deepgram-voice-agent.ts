@@ -324,8 +324,14 @@ export class DeepgramVoiceAgent {
     }
 
     this.mediaStreamSource.connect(this.audioProcessor)
-    this.audioProcessor.connect(this.audioContext.destination)
-    console.log('[Deepgram] Audio capture started')
+    // ScriptProcessor must be connected to the audio graph to fire onaudioprocess events,
+    // but we DON'T want to play the microphone audio through the speakers (causes background noise).
+    // Solution: Route through a silent gain node
+    const silentSink = this.audioContext.createGain()
+    silentSink.gain.value = 0
+    this.audioProcessor.connect(silentSink)
+    silentSink.connect(this.audioContext.destination)
+    console.log('[Deepgram] Audio capture started (mic routed to silent sink)')
   }
 
   // Downsample audio from one sample rate to another (from official Deepgram demo)
