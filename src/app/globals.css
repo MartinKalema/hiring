@@ -169,24 +169,49 @@ body {
 }
 
 
-/* Deepgram Hal Orb Animation */
+/* Deepgram Hal Orb Animation - Exact copy from Deepgram demo */
 .orb-animation {
-  width: 320px;
-  height: 320px;
+  width: 183px;
+  height: 183px;
   max-height: 30vh;
-  cursor: pointer;
 }
 
+/* Small devices (>=640px) */
 @media (min-width: 640px) {
   .orb-animation {
-    width: 320px;
-    height: 320px;
+    width: 240px;
+    height: 240px;
   }
 }
 
+/* Medium devices (>=768px) */
 @media (min-width: 768px) {
   .orb-animation {
-    width: 320px;
-    height: 320px;
+    width: 240px;
+    height: 240px;
+  }
+}
+
+/* Large devices (>=1024px) */
+@media (min-width: 1024px) {
+  .orb-animation {
+    width: 421px;
+    height: 421px;
+  }
+}
+
+/* Extra large devices (>=1280px) */
+@media (min-width: 1280px) {
+  .orb-animation {
+    width: 421px;
+    height: 421px;
+  }
+}
+
+/* Extra extra large devices (>=1536px) */
+@media (min-width: 1536px) {
+  .orb-animation {
+    width: 421px;
+    height: 421px;
   }
 }
