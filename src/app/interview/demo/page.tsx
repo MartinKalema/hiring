@@ -35,6 +35,7 @@ export default function DemoInterviewPage() {
   const [selectedMic, setSelectedMic] = useState<string>('')
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
   const [displayedText, setDisplayedText] = useState('')
+  const [isActuallyPlaying, setIsActuallyPlaying] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null)
@@ -91,9 +92,11 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     onAgentUtterance: (text) => {
       // Clear previous text and show new agent utterance
       setDisplayedText(text)
+      setIsActuallyPlaying(true)
     },
     onAgentStoppedSpeaking: () => {
-      // Do nothing - text stays visible with blinking cursor
+      // Audio playback finished - now truly listening
+      setIsActuallyPlaying(false)
     },
     onError: (error) => {
       console.error('Demo interview error:', error)
@@ -744,7 +747,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
                   <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
                 </div>
                 <span className="text-sm text-white/90 font-medium">
-                  {voiceAgent.isSpeaking ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
+                  {isActuallyPlaying ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
                 </span>
               </div>
             </div>
