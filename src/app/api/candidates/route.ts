@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/database'
 
-// GET /api/candidates - List all candidates for the organization
 export async function GET(request: NextRequest) {
   try {
     const { userId, orgId } = await auth()
@@ -38,7 +37,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/candidates - Create a new candidate
 export async function POST(request: NextRequest) {
   try {
     const { userId, orgId } = await auth()
@@ -65,7 +63,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if candidate already exists
     const { data: existing } = await db
       .from('candidates')
       .select('id')

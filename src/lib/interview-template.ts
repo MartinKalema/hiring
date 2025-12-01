@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
-import { InterviewStatus } from '../value-objects/interview-status'
-import { CompetencyType } from '../value-objects/competency'
+import { InterviewStatus } from '@/lib/interview-status'
+import { CompetencyType } from '@/lib/competency'
 
 export interface InterviewConfig {
   // Time settings

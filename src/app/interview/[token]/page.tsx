@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { useVoiceAgent } from '@/presentation/hooks/use-voice-agent'
+import { useVoiceAgent } from '@/hooks/use-voice-agent'
 
 type InterviewStage = 'loading' | 'error' | 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 

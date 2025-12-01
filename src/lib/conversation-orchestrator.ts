@@ -1,7 +1,7 @@
-import { InterviewSession } from '@/domain/interview/entities/interview-session'
-import { InterviewTemplate } from '@/domain/interview/entities/interview-template'
-import { ConversationTurn, ResponseAnalysis } from '@/domain/interview/value-objects/conversation-turn'
-import { CompetencyCoverage } from '@/domain/interview/value-objects/competency'
+import { InterviewSession } from '@/lib/interview-session'
+import { InterviewTemplate } from '@/lib/interview-template'
+import { ConversationTurn, ResponseAnalysis } from '@/lib/conversation-turn'
+import { CompetencyCoverage } from '@/lib/competency'
 import { v4 as uuidv4 } from 'uuid'
 
 export type DecisionType =

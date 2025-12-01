@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { generateJuniorDataEngineerPrompt } from '@/lib/prompts/junior-data-engineer.prompt'
 
 // POST /api/interview/demo/voice - Get voice agent configuration for demo
 export async function POST(request: NextRequest) {
@@ -7,48 +8,60 @@ export async function POST(request: NextRequest) {
     const { candidateFirstName, candidateLastName } = body
 
     // Demo interview configuration
-    const jobTitle = 'Senior Software Engineer'
+    const jobTitle = 'Junior Data Engineer'
     const companyName = 'Demo Company'
     const maxDuration = 9
 
-    const instructions = `You are AIR, an AI interviewer conducting a demo interview for a ${jobTitle} position at ${companyName}.
+    const instructions = generateJuniorDataEngineerPrompt({
+      candidateName: `${candidateFirstName} ${candidateLastName || ''}`.trim(),
+      companyName,
+      maxDurationMinutes: maxDuration,
+      depthLevel: 'moderate'
+    })
 
-Your role:
-- Conduct a professional, conversational interview
-- Ask behavioral and technical questions relevant to the role
-- When answers are vague, probe deeper using the STAR method (Situation, Task, Action, Result)
-- Be warm, encouraging, but professional
-- Listen carefully and ask relevant follow-up questions
+    // Remove all mentions of "AIR" and "demo" to make it professional
+    const professionalInstructions = instructions
+      .replace(/AIR \(AI Recruiter\)/g, 'an expert technical interviewer')
+      .replace(/I'm AIR, your AI interviewer for today\./g, 'Welcome!')
+      .replace(/I'm AIR,/g, "I'm your interviewer,")
+      .replace(/\bAIR\b/g, 'the interviewer')
+      .replace(/demo interview/gi, 'interview')
+      .replace(/this is a demo/gi, 'this is your interview') + `
 
-Interview structure:
-1. Start with a warm greeting, introduce yourself as AIR, mention this is a demo interview
-2. Ask about their background and interest in the role
-3. Ask 2-3 behavioral questions about relevant competencies
-4. For each answer, probe deeper if needed (ask for specific examples, outcomes, learnings)
-5. Allow time for candidate questions
-6. Close with next steps and thanks
+CRITICAL TIME MANAGEMENT RULES:
 
-COMPETENCIES TO ASSESS:
-1. Problem Solving - Ability to analyze complex problems and develop effective solutions
-2. Communication - Clear articulation of ideas and active listening
-3. Teamwork - Collaboration and working effectively with others
+You must track elapsed time mentally throughout the interview. For a ${maxDuration} minute interview:
 
-PROBING GUIDELINES:
-- If an answer lacks specifics, ask: "Can you walk me through a specific example?"
-- If no measurable outcomes, ask: "What was the result of that approach?"
-- If unclear on their role, ask: "What was your specific contribution to that?"
-- Maximum 2 follow-up probes per topic before moving on
+At ~${Math.floor(maxDuration * 0.5)} minutes (50%):
+- After the candidate finishes their current response, quickly assess: have you covered at least 2 technical competencies?
+- If still on the first topic, say: "That's great context. In the interest of time, let me shift to another area..."
+- Then move to the next competency immediately
 
-TIMING:
-- Maximum duration: ${maxDuration} minutes
-- When 2 minutes remain, start wrapping up
-- When 1 minute remains, thank the candidate and end gracefully
+At ~${Math.floor(maxDuration * 0.75)} minutes (75%):
+- After the candidate finishes their current response, begin wrapping up technical questions
+- Say something like: "Excellent. We're making good progress. Let me ask one final technical question before we wrap up..."
+- Then transition to closing phase
 
-Candidate name: ${candidateFirstName} ${candidateLastName || ''}
+At ~${maxDuration - 2} minutes (2 min remaining):
+- After the candidate finishes speaking, say: "We have about 2 minutes left. What questions do you have about the role or ${companyName}?"
+- Answer 1-2 candidate questions briefly (30 seconds each max)
 
-This is a DEMO interview to showcase the AI interviewing experience. Keep it friendly and conversational.
+At ~${maxDuration - 1} minutes (1 min remaining):
+- Politely wrap up any current discussion: "That's a great question. Let me give you a brief answer..."
+- Then immediately transition to closing
 
-Start by greeting ${candidateFirstName}, introducing yourself as AIR, explaining this is a demo interview for the ${jobTitle} role at ${companyName}. Mention the interview will take about ${maxDuration} minutes and ask if they're ready to get started.`
+At ~${maxDuration - 0.5} minutes (30 sec remaining):
+- Deliver your closing statement immediately, regardless of what's happening: "Thank you so much for your time today, ${candidateFirstName}. The hiring team will review our conversation and be in touch about next steps. Best of luck!"
+
+NEVER interrupt the candidate mid-sentence. ALWAYS wait for them to finish speaking before transitioning.
+
+Use natural transition phrases:
+- "That's really helpful. In the interest of time, let me ask about..."
+- "Great. We're being mindful of our time, so let's shift to..."
+- "Excellent. Before we run out of time, I want to make sure we cover..."
+- "Perfect. We have a few minutes left, so let me ask..."
+
+These transitions should feel conversational, not robotic.`
 
     // Get Deepgram API key from environment
     const deepgramApiKey = process.env.DEEPGRAM_API_KEY
@@ -57,19 +70,20 @@ Start by greeting ${candidateFirstName}, introducing yourself as AIR, explaining
       return NextResponse.json({ error: 'Voice service not configured' }, { status: 503 })
     }
 
-    // Build greeting message for the AI interviewer
-    const greeting = `Hello ${candidateFirstName}! I'm AIR, your AI interviewer today. I'll be conducting a demo interview for the ${jobTitle} position at ${companyName}. This interview will take about ${maxDuration} minutes. Before we dive into the questions, could you tell me a little about yourself and what interests you about this role?`
+    // Build greeting message - natural and professional, no "AIR" or "demo" mentions
+    const greeting = `Hello ${candidateFirstName}! Welcome to your ${jobTitle} interview with ${companyName}. We have ${maxDuration} minutes together, and I'm excited to learn about your background and interest in data engineering. Before we begin, please make sure you're in a comfortable spot with minimal background noise. Ready to get started?`
 
     return NextResponse.json({
       apiKey: deepgramApiKey,
-      instructions,
+      instructions: professionalInstructions,
       config: {
-        voice: 'aura-2-thalia-en',  // Per Deepgram docs
-        thinkModel: 'claude-sonnet-4-20250514',  // Claude Sonnet 4
-        thinkProvider: 'anthropic',  // Use Anthropic/Claude
+        voice: 'aura-asteria-en',
+        speechSpeed: 1.15,
+        thinkModel: 'claude-sonnet-4-20250514',
+        thinkProvider: 'anthropic',
         maxDuration,
         language: 'en',
-        greeting,  // Initial greeting from the AI interviewer
+        greeting,
       },
       interview: {
         jobTitle,

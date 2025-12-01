@@ -6,7 +6,7 @@ import {
   AgentState,
   ConnectionState,
   AgentOptions,
-} from '@/infrastructure/ai/deepgram-voice-agent'
+} from '@/lib/deepgram-voice-agent'
 
 export interface UseVoiceAgentOptions {
   apiKey: string
@@ -16,7 +16,7 @@ export interface UseVoiceAgentOptions {
   thinkProvider?: string
   language?: string
   greeting?: string
-  speechSpeed?: number  // Playback speed (1.0 = normal, 1.2 = 20% faster)
+  speechSpeed?: number
   onTranscript?: (text: string, isFinal: boolean) => void
   onAgentUtterance?: (text: string) => void
   onAgentStoppedSpeaking?: () => void
@@ -31,7 +31,7 @@ export interface ConnectOptions {
   thinkProvider?: string
   language?: string
   greeting?: string
-  speechSpeed?: number  // Playback speed (1.0 = normal, 1.2 = 20% faster)
+  speechSpeed?: number
 }
 
 export interface UseVoiceAgentReturn {
@@ -67,16 +67,14 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
       agentRef.current.disconnect()
     }
 
-    // Use overrides if provided, otherwise fall back to hook options
-    // Defaults match Deepgram Voice Agent documentation
     const apiKey = overrides?.apiKey || options.apiKey
     const instructions = overrides?.instructions || options.instructions
-    const voice = overrides?.voice || options.voice || 'aura-2-thalia-en'  // Per docs
-    const thinkModel = overrides?.thinkModel || options.thinkModel || 'gpt-4o-mini'  // Per docs
-    const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'open_ai'  // Per docs
-    const language = overrides?.language || options.language || 'en'  // Per docs
+    const voice = overrides?.voice || options.voice || 'aura-2-thalia-en'
+    const thinkModel = overrides?.thinkModel || options.thinkModel || 'gpt-4o-mini'
+    const thinkProvider = overrides?.thinkProvider || options.thinkProvider || 'open_ai'
+    const language = overrides?.language || options.language || 'en'
     const greeting = overrides?.greeting || options.greeting
-    const speechSpeed = overrides?.speechSpeed || options.speechSpeed || 1.0  // Default normal speed to avoid artifacts
+    const speechSpeed = overrides?.speechSpeed || options.speechSpeed || 1.0
 
     if (!apiKey) {
       const error = new Error('API key is required to connect')
@@ -95,7 +93,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
       speechSpeed,
     }
 
-    const agent = new DeepgramVoiceAgent(apiKey, agentOptions, {
+    const agent = new DeepgramVoiceAgent(agentOptions, {
       onConnectionStateChange: (state) => {
         setConnectionState(state)
       },
@@ -133,7 +131,8 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
   }, [])
 
   const interrupt = useCallback(() => {
-    agentRef.current?.interrupt()
+    // SDK doesn't support interrupt - disconnect and reconnect would be needed
+    console.warn('[Voice Agent] Interrupt not supported with SDK implementation')
   }, [])
 
   const injectMessage = useCallback((text: string) => {

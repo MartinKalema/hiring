@@ -1,10 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { AIResponseGenerator } from '@/application/interview/services/conversation-orchestrator'
-import { InterviewTemplate } from '@/domain/interview/entities/interview-template'
-import { InterviewSession } from '@/domain/interview/entities/interview-session'
-import { CompetencyCoverage, Competency } from '@/domain/interview/value-objects/competency'
-import { ConversationTurn, ResponseAnalysis } from '@/domain/interview/value-objects/conversation-turn'
-import { OrchestratorDecision } from '@/application/interview/services/conversation-orchestrator'
+import { AIResponseGenerator } from '@/lib/conversation-orchestrator'
+import { InterviewTemplate } from '@/lib/interview-template'
+import { InterviewSession } from '@/lib/interview-session'
+import { CompetencyCoverage, Competency } from '@/lib/competency'
+import { ConversationTurn, ResponseAnalysis } from '@/lib/conversation-turn'
+import { OrchestratorDecision } from '@/lib/conversation-orchestrator'
 
 export class ClaudeResponseGenerator implements AIResponseGenerator {
   private client: Anthropic

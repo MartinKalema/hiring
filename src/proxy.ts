@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   '/interview/(.*)',  // Candidate interview pages are public
   '/api/interview/(.*)',  // Interview API endpoints (for candidates)
   '/api/webhooks/(.*)',  // Webhooks
+  '/api/deepgram-token',  // Deepgram authentication token
 ])
 
 export default clerkMiddleware(async (auth, req) => {

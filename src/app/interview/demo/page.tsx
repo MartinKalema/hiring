@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useVoiceAgent } from '@/presentation/hooks/use-voice-agent'
+import { useVoiceAgent } from '@/hooks/use-voice-agent'
 
 type InterviewStage = 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 
@@ -15,6 +15,7 @@ interface VoiceConfig {
   apiKey: string
   instructions: string
   voice: string
+  speechSpeed?: number
   thinkModel: string
   thinkProvider: string
 }
@@ -52,6 +53,7 @@ export default function DemoInterviewPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const timeCheckpointsTriggered = useRef<Set<number>>(new Set())
 
   // Refs for word-by-word text reveal
   const targetTextRef = useRef('')
@@ -147,6 +149,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     apiKey: voiceConfig?.apiKey || '',
     instructions: voiceConfig?.instructions || buildInstructions(),
     voice: voiceConfig?.voice || 'aura-asteria-en',
+    speechSpeed: voiceConfig?.speechSpeed || 1.0,
     thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
     thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
     onTranscript: (text, isFinal) => {
@@ -242,16 +245,47 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     }
   }, [stage, selectedCamera, selectedMic])
 
-  // Timer for interview duration
+  // Timer for interview duration with time-based checkpoints
   useEffect(() => {
     if (stage === 'active') {
       timerRef.current = setInterval(() => {
         setElapsedTime(prev => {
           const newTime = prev + 1
-          // Check for time limit
-          if (newTime >= interviewConfig.maxDuration * 60) {
+          const maxSeconds = interviewConfig.maxDuration * 60
+
+          // Define time checkpoints (in seconds)
+          const checkpoints = {
+            halfway: Math.floor(maxSeconds * 0.5),      // 50% - 4.5 min for 9 min interview
+            threeQuarters: Math.floor(maxSeconds * 0.75), // 75% - 6.75 min
+            twoMinLeft: maxSeconds - 120,                 // 2 minutes remaining
+            oneMinLeft: maxSeconds - 60,                  // 1 minute remaining
+            thirtySecLeft: maxSeconds - 30,               // 30 seconds remaining
+          }
+
+          if (newTime === checkpoints.halfway && !timeCheckpointsTriggered.current.has(checkpoints.halfway)) {
+            timeCheckpointsTriggered.current.add(checkpoints.halfway)
+            console.log('[Interview] 50% checkpoint')
+          }
+
+          if (newTime === checkpoints.threeQuarters && !timeCheckpointsTriggered.current.has(checkpoints.threeQuarters)) {
+            timeCheckpointsTriggered.current.add(checkpoints.threeQuarters)
+            console.log('[Interview] 75% checkpoint')
+          }
+
+          if (newTime === checkpoints.twoMinLeft && !timeCheckpointsTriggered.current.has(checkpoints.twoMinLeft)) {
+            timeCheckpointsTriggered.current.add(checkpoints.twoMinLeft)
+            console.log('[Interview] 2 min remaining')
+          }
+
+          if (newTime === checkpoints.oneMinLeft && !timeCheckpointsTriggered.current.has(checkpoints.oneMinLeft)) {
+            timeCheckpointsTriggered.current.add(checkpoints.oneMinLeft)
+            console.log('[Interview] 1 min remaining')
+          }
+
+          if (newTime >= maxSeconds) {
             handleEndInterview()
           }
+
           return newTime
         })
       }, 1000)
@@ -262,7 +296,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         clearInterval(timerRef.current)
       }
     }
-  }, [stage, interviewConfig.maxDuration])
+  }, [stage, interviewConfig.maxDuration, voiceAgent])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -304,15 +338,16 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         apiKey: data.apiKey,
         instructions: data.instructions,
         voice: data.config.voice,
+        speechSpeed: data.config.speechSpeed,
         thinkModel: data.config.thinkModel,
         thinkProvider: data.config.thinkProvider,
       })
 
-      // Connect to Deepgram Voice Agent - pass config directly to avoid stale closure
       await voiceAgent.connect({
         apiKey: data.apiKey,
         instructions: data.instructions,
         voice: data.config.voice,
+        speechSpeed: data.config.speechSpeed,
         thinkModel: data.config.thinkModel,
         thinkProvider: data.config.thinkProvider,
         language: data.config.language,

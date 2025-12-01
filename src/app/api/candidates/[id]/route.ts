@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/database'
 
-// GET /api/candidates/[id] - Get a single candidate
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -50,7 +49,6 @@ export async function GET(
   }
 }
 
-// PATCH /api/candidates/[id] - Update a candidate
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -63,7 +61,6 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Verify candidate belongs to organization
     const { data: existing } = await db
       .from('candidates')
       .select('id, email')
@@ -85,7 +82,6 @@ export async function PATCH(
     if (body.linkedinUrl !== undefined) updateData.linkedin_url = body.linkedinUrl
     if (body.metadata) updateData.metadata = body.metadata
 
-    // Check email uniqueness if changing
     if (body.email && body.email !== existing.email) {
       const { data: emailExists } = await db
         .from('candidates')
@@ -122,7 +118,6 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/candidates/[id] - Delete a candidate
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -135,7 +130,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Verify candidate belongs to organization
     const { data: existing } = await db
       .from('candidates')
       .select('id')
@@ -147,7 +141,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
-    // Check if there are any sessions
     const { count: sessionCount } = await db
       .from('interview_sessions')
       .select('*', { count: 'exact', head: true })
