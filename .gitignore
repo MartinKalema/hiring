@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 deepgram-voice-agent-demo
+
+# Reference folders
+aibos-job-portal-3/
