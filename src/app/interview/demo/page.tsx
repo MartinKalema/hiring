@@ -376,14 +376,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
           }}
         ></div>
 
-        {/* Header */}
-        <header className="relative z-10 px-8 py-6 flex items-center justify-end">
-          <a href="/" className="text-sm text-gray-600 hover:text-[#0066cc] transition-colors">
-            ← Back to Home
-          </a>
-        </header>
-
-        <div className="grid lg:grid-cols-2 min-h-[calc(100vh-100px)]">
+        <div className="grid lg:grid-cols-2 min-h-screen">
           {/* Left side - Full height decorative area */}
           <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-[#0066cc]/5 to-blue-50/30">
             {/* Background decorative elements */}
@@ -394,7 +387,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
           </div>
 
           {/* Right side - Form */}
-          <div className="flex items-center justify-center p-8 lg:p-12 relative z-10">
+          <div className="flex items-center justify-center p-8 lg:p-12 relative">
+            {/* Back to Home link - top right */}
+            <a href="/" className="absolute top-8 right-8 text-sm text-gray-600 hover:text-[#0066cc] transition-colors">
+              ← Back to Home
+            </a>
+
             <div className="w-full max-w-md">
               <h1 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
                 Welcome to your AI interview
