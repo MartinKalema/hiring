@@ -400,7 +400,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <div className="absolute top-1/2 right-10 opacity-26">
               <Image src="/tech-logos/docker-original.svg" alt="Docker" width={52} height={52} />
             </div>
-            <div className="absolute bottom-16 left-10 opacity-29">
+            <div className="absolute bottom-1/3 left-2/5 opacity-29">
               <Image src="/tech-logos/nodejs-original.svg" alt="Node.js" width={50} height={50} />
             </div>
             <div className="absolute top-20 right-1/4 opacity-25">
