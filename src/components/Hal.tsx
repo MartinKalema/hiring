@@ -171,13 +171,14 @@ const makeGradient = (
 };
 
 enum Color {
-  springGreen = "#13ef93cc",
-  springGreenLight = "#b8f8d2cc",
-  eucalyptus = "#027a48cc",
-  rose = "#f185becc",
-  lavender = "#ba80f5cc",
-  chryslerBlue = "#3a00d3cc",
-  azure = "#149afbcc",
+  aibosDarkBlue = "#004c99cc",
+  aibosBlue = "#0066cccc",
+  aibosLightBlue = "#0099ffcc",
+  aibosSkyBlue = "#66b3ffcc",
+  gray = "#6b7280cc",
+  lightGray = "#9ca3afcc",
+  darkGray = "#374151cc",
+  black = "#1f2937cc",
   transparent = "transparent",
 }
 
@@ -188,7 +189,7 @@ const lines: LineConfig[] = [
   {
     segments: [
       { pct: 0.42, color: Color.transparent },
-      { pct: 0.61, color: Color.rose },
+      { pct: 0.61, color: Color.aibosBlue },
     ],
     startAngle: 3.52,
     speedMultiplier: 1.21,
@@ -201,8 +202,8 @@ const lines: LineConfig[] = [
   },
   {
     segments: [
-      { pct: 0.28, color: Color.springGreen },
-      { pct: 0.62, color: Color.rose },
+      { pct: 0.28, color: Color.aibosLightBlue },
+      { pct: 0.62, color: Color.gray },
     ],
     startAngle: 1.59,
     speedMultiplier: 0.64,
@@ -215,8 +216,8 @@ const lines: LineConfig[] = [
   },
   {
     segments: [
-      { pct: 0.31, color: Color.eucalyptus },
-      { pct: 0.66, color: Color.chryslerBlue },
+      { pct: 0.31, color: Color.darkGray },
+      { pct: 0.66, color: Color.aibosDarkBlue },
     ],
     startAngle: 2.86,
     speedMultiplier: 0.94,
@@ -229,9 +230,9 @@ const lines: LineConfig[] = [
   },
   {
     segments: [
-      { pct: 0.16, color: Color.chryslerBlue },
-      { pct: 0.62, color: Color.eucalyptus },
-      { pct: 0.75, color: Color.lavender },
+      { pct: 0.16, color: Color.aibosBlue },
+      { pct: 0.62, color: Color.black },
+      { pct: 0.75, color: Color.lightGray },
     ],
     startAngle: 0.65,
     speedMultiplier: 1.23,
@@ -244,8 +245,8 @@ const lines: LineConfig[] = [
   },
   {
     segments: [
-      { pct: 0.02, color: Color.springGreen },
-      { pct: 0.8, color: Color.azure },
+      { pct: 0.02, color: Color.aibosSkyBlue },
+      { pct: 0.8, color: Color.aibosBlue },
     ],
     startAngle: 6.19,
     speedMultiplier: 1.18,
@@ -260,7 +261,7 @@ const lines: LineConfig[] = [
     segments: [
       { pct: 0.2, color: Color.transparent },
       { pct: 0.47, color: Color.transparent },
-      { pct: 0.81, color: Color.springGreenLight },
+      { pct: 0.81, color: Color.aibosLightBlue },
     ],
     startAngle: 0.49,
     speedMultiplier: 0.51,
