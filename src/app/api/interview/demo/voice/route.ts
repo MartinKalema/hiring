@@ -79,8 +79,8 @@ These transitions should feel conversational, not robotic.`
       config: {
         voice: 'aura-asteria-en',
         speechSpeed: 1.15,
-        thinkModel: 'claude-sonnet-4-20250514',
-        thinkProvider: 'anthropic',
+        thinkModel: 'gpt-5',
+        thinkProvider: 'open_ai',
         maxDuration,
         language: 'en',
         greeting,
