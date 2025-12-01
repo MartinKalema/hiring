@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/database'
 
-// GET /api/interview/[token] - Public route for candidates to get interview data
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
@@ -34,9 +33,7 @@ export async function GET(
       return NextResponse.json({ error: 'Interview not found' }, { status: 404 })
     }
 
-    // Check if expired
     if (new Date() > new Date(session.expires_at)) {
-      // Update status if not already expired
       if (session.status === 'invited') {
         await db
           .from('interview_sessions')
@@ -46,7 +43,6 @@ export async function GET(
       return NextResponse.json({ error: 'Interview link has expired' }, { status: 410 })
     }
 
-    // Check if already completed
     if (session.status === 'completed') {
       return NextResponse.json({ error: 'Interview already completed' }, { status: 410 })
     }
@@ -64,7 +60,6 @@ export async function GET(
   }
 }
 
-// POST /api/interview/[token] - Start or update interview session
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
@@ -87,13 +82,11 @@ export async function POST(
       return NextResponse.json({ error: 'Interview not found' }, { status: 404 })
     }
 
-    // Check expiry
     if (new Date() > new Date(session.expires_at)) {
       return NextResponse.json({ error: 'Interview link has expired' }, { status: 410 })
     }
 
     if (action === 'start') {
-      // Mark session as started
       const { data: updated, error } = await db
         .from('interview_sessions')
         .update({
@@ -115,7 +108,6 @@ export async function POST(
     }
 
     if (action === 'turn' && conversationTurn) {
-      // Add conversation turn
       const currentHistory = (session.conversation_history as Array<Record<string, unknown>>) || []
 
       const { data: updated, error } = await db

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
-import { SessionStatus } from '../value-objects/session-status'
-import { CompetencyType, CompetencyCoverage } from '../value-objects/competency'
-import { ConversationTurn, ResponseAnalysis } from '../value-objects/conversation-turn'
+import { SessionStatus } from '@/lib/session-status'
+import { CompetencyType, CompetencyCoverage } from '@/lib/competency'
+import { ConversationTurn, ResponseAnalysis } from '@/lib/conversation-turn'
 
 export interface CandidateInfo {
   id: string

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CompetencyType, Competency } from '@/domain/interview/value-objects/competency'
+import { CompetencyType, Competency } from '@/lib/competency'
 
 type InputMethod = 'link' | 'text' | 'scratch'
 type Step = 'input' | 'details' | 'competencies' | 'settings' | 'preview'
