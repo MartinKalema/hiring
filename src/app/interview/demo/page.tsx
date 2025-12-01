@@ -734,11 +734,36 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             </p>
           </div>
 
-          {/* State indicator below text */}
-          <div className="mt-3 text-center">
-            <span className={`text-xs font-medium ${voiceAgent.isSpeaking ? 'text-[#0066cc]' : 'text-gray-500'}`}>
-              {voiceAgent.isSpeaking ? 'Speaking...' : voiceAgent.isThinking ? 'Thinking...' : 'Listening...'}
-            </span>
+          {/* Enhanced state indicator */}
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
+              voiceAgent.isSpeaking
+                ? 'bg-[#0066cc]/10 border-[#0066cc]/30'
+                : voiceAgent.isThinking
+                  ? 'bg-purple-50 border-purple-200'
+                  : 'bg-gray-50 border-gray-200'
+            }`}>
+              {voiceAgent.isSpeaking ? (
+                <>
+                  <div className="flex gap-1">
+                    <div className="w-1 h-4 bg-[#0066cc] rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1 h-4 bg-[#0066cc] rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-1 h-4 bg-[#0066cc] rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <span className="text-sm font-medium text-[#0066cc]">Speaking</span>
+                </>
+              ) : voiceAgent.isThinking ? (
+                <>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-spin"></div>
+                  <span className="text-sm font-medium text-purple-600">Thinking</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-gray-600">Listening</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
