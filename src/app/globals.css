@@ -167,3 +167,26 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
 }
+
+
+/* Deepgram Hal Orb Animation */
+.orb-animation {
+  width: 320px;
+  height: 320px;
+  max-height: 30vh;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .orb-animation {
+    width: 320px;
+    height: 320px;
+  }
+}
+
+@media (min-width: 768px) {
+  .orb-animation {
+    width: 320px;
+    height: 320px;
+  }
+}
