@@ -437,8 +437,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
               <Image src="/tech-logos/tensorflow-original.svg" alt="TensorFlow" width={46} height={46} />
             </div>
 
-            {/* Huge AIBOS Logo */}
-            <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90 relative z-10" />
+            {/* AIBOS Logo */}
+            <Image src="/aibos-logo.png" alt="AIBOS" width={320} height={320} className="object-contain opacity-90 relative z-10" />
           </div>
 
           {/* Right side - Form */}
