@@ -790,7 +790,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <TerminalTextWord
               text={displayedText || 'Welcome to your interview...'}
               typingSpeed={250}
-              className="text-base md:text-lg leading-relaxed text-gray-800 text-center"
+              className="text-sm md:text-base leading-relaxed text-gray-800 text-center"
             />
           </div>
 
