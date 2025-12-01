@@ -45,6 +45,24 @@ export default function RootLayout({
           formButtonPrimary: 'bg-[#0066cc] hover:bg-[#004c99] text-white',
           footerActionLink: 'text-[#0066cc] hover:text-[#004c99]',
         },
+        layout: {
+          socialButtonsPlacement: 'bottom',
+          socialButtonsVariant: 'iconButton',
+        },
+      }}
+      localization={{
+        signIn: {
+          start: {
+            title: 'Sign in',
+            subtitle: 'Welcome back! Please sign in to continue',
+          },
+        },
+        signUp: {
+          start: {
+            title: 'Sign up',
+            subtitle: 'Create your account to get started',
+          },
+        },
       }}
     >
       <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
