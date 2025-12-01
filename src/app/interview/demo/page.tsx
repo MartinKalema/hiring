@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { useVoiceAgent } from '@/hooks/use-voice-agent'
-import { TerminalText } from '@/components/terminal-text'
 
 type InterviewStage = 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 
@@ -738,13 +737,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
           {/* Transcript text - terminal style with wider width */}
           <div className="mt-8 max-w-6xl px-6">
-            <div className="text-base md:text-lg leading-relaxed text-gray-800 text-center font-mono">
-              <TerminalText
-                text={displayedText || 'Welcome to your interview...'}
-                typingSpeed={30}
-                resetInterval={0}
-              />
-            </div>
+            <p className="text-base md:text-lg leading-relaxed text-gray-800 text-center font-mono">
+              {displayedText || 'Welcome to your interview...'}
+              {isRevealingText && (
+                <span className="inline-block w-0.5 h-5 ml-1 bg-[#0066cc] animate-pulse align-middle" />
+              )}
+            </p>
           </div>
 
           {/* State indicator below text */}
