@@ -377,13 +377,14 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         ></div>
 
         <div className="grid lg:grid-cols-2 min-h-screen">
-          {/* Left side - Full height decorative area */}
-          <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-[#0066cc]/5 to-blue-50/30">
+          {/* Left side - Full height decorative area with huge AIBOS logo */}
+          <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-[#0066cc]/5 to-blue-50/30 items-center justify-center">
             {/* Background decorative elements */}
             <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-[#0066cc]/5 opacity-60"></div>
             <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-blue-100 opacity-40"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border-2 border-blue-100 opacity-30"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full border-2 border-blue-100 opacity-30"></div>
+
+            {/* Huge AIBOS Logo */}
+            <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90" />
           </div>
 
           {/* Right side - Form */}
