@@ -35,6 +35,7 @@ export default function DemoInterviewPage() {
   const [selectedMic, setSelectedMic] = useState<string>('')
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
   const [displayedText, setDisplayedText] = useState('')
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null)
@@ -91,9 +92,11 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     onAgentUtterance: (text) => {
       // Clear previous text and show new agent utterance
       setDisplayedText(text)
+      setIsAudioPlaying(true)
     },
     onAgentStoppedSpeaking: () => {
-      // Do nothing - text stays visible with blinking cursor
+      // Audio has actually finished playing (with calculated delay)
+      setIsAudioPlaying(false)
     },
     onError: (error) => {
       console.error('Demo interview error:', error)
@@ -744,7 +747,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
                   <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
                 </div>
                 <span className="text-sm text-white/90 font-medium">
-                  {voiceAgent.isSpeaking ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
+                  {isAudioPlaying ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
                 </span>
               </div>
             </div>
@@ -755,7 +758,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
       {/* Bottom - Video and Timer */}
       <div className="fixed bottom-0 left-0 right-0 p-6 relative z-10">
-        <div className="max-w-7xl mx-auto flex items-end justify-between px-4">
+        <div className="w-full flex items-end justify-between">
           {/* Bottom Left - Candidate Video */}
           <div className="candidate-video w-80 h-60 relative rounded-2xl overflow-hidden shadow-2xl">
             <video
