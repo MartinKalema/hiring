@@ -734,36 +734,24 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             </p>
           </div>
 
-          {/* Enhanced state indicator */}
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
-              voiceAgent.isSpeaking
-                ? 'bg-[#0066cc]/10 border-[#0066cc]/30'
-                : voiceAgent.isThinking
-                  ? 'bg-purple-50 border-purple-200'
-                  : 'bg-gray-50 border-gray-200'
-            }`}>
-              {voiceAgent.isSpeaking ? (
-                <>
-                  <div className="flex gap-1">
-                    <div className="w-1 h-4 bg-[#0066cc] rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-1 h-4 bg-[#0066cc] rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-1 h-4 bg-[#0066cc] rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
-                  </div>
-                  <span className="text-sm font-medium text-[#0066cc]">Speaking</span>
-                </>
-              ) : voiceAgent.isThinking ? (
-                <>
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-spin"></div>
-                  <span className="text-sm font-medium text-purple-600">Thinking</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-gray-600">Listening</span>
-                </>
-              )}
-            </div>
+          {/* Just show the agent state - minimal and clean */}
+          <div className="mt-4">
+            {voiceAgent.isSpeaking && (
+              <div className="flex justify-center items-center gap-2">
+                <div className="flex gap-1 items-end h-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1 bg-[#0066cc] rounded-full animate-pulse"
+                      style={{
+                        animationDelay: `${i * 100}ms`,
+                        height: `${12 + (i % 2) * 4}px`,
+                      }}
+                    ></div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
