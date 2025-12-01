@@ -25,9 +25,9 @@ interface VoiceConfig {
 export default function DemoInterviewPage() {
   const [stage, setStage] = useState<InterviewStage>('welcome')
   const [candidateInfo, setCandidateInfo] = useState<CandidateInfo>({
-    firstName: 'Demo',
-    lastName: 'Candidate',
-    email: 'demo@example.com',
+    firstName: '',
+    lastName: '',
+    email: '',
   })
   const [cameraReady, setCameraReady] = useState(false)
   const [micReady, setMicReady] = useState(false)
@@ -458,7 +458,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
                   className="w-full bg-[#0066cc] hover:bg-[#004c99] text-white px-6 py-3 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!candidateInfo.firstName || !candidateInfo.lastName || !candidateInfo.email}
                 >
-                  Continue to Setup
+                  Start Interview
                 </button>
 
                 <p className="text-xs text-gray-500 text-center">
