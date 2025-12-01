@@ -349,9 +349,9 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
   // Demo Banner Component
   const DemoBanner = () => (
-    <div className="fixed top-0 left-0 right-0 bg-amber-500 text-amber-900 py-2 px-4 text-center text-sm font-medium z-50">
+    <div className="fixed top-0 left-0 right-0 bg-[#0066cc] text-white py-2 px-4 text-center text-sm font-medium z-50">
       Demo Mode - This is a preview of the candidate interview experience.{' '}
-      <a href="/interviews/new" className="underline hover:no-underline">
+      <a href="/interviews/new" className="text-white underline hover:no-underline">
         Create a real interview
       </a>
     </div>
@@ -721,40 +721,11 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
       <div className="absolute top-40 right-1/4 w-6 h-6 rounded-full bg-[#0066cc]/30 opacity-20"></div>
       <div className="absolute top-60 left-1/4 w-4 h-4 rounded-full bg-blue-500 opacity-30"></div>
 
-      {/* Top - AI transcript text */}
-      <div className="flex-shrink-0 p-6 md:p-8 pt-12 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-lg md:text-xl leading-relaxed text-gray-800 text-center">
-            {displayedText || 'Welcome to your interview...'}
-            {isRevealingText && (
-              <span className="inline-block w-0.5 h-6 ml-1 bg-[#0066cc] animate-pulse align-middle" />
-            )}
-          </p>
-        </div>
-      </div>
-
-      {/* Center - Main Interview Area */}
-      <div className="flex-1 flex items-center justify-center px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl items-center">
-          {/* LEFT - Candidate Video (50% larger) */}
-          <div className="lg:col-span-1 flex justify-center">
-            <div className="candidate-video w-96 h-72 relative rounded-2xl overflow-hidden shadow-2xl">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full">
-                <span className="text-white text-xs font-medium">{candidateInfo.firstName}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* CENTER - AIBOS Logo with Speaking Animation */}
-          <div className="lg:col-span-1 flex justify-center relative">
-            {/* Speaking animation rings behind logo */}
+      {/* Center - AIBOS Logo with Speaking Animation and Text */}
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <div className="flex flex-col items-center">
+          {/* Speaking animation rings behind logo */}
+          <div className="relative">
             {voiceAgent.isSpeaking && (
               <>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -770,55 +741,68 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             )}
 
             {/* AIBOS Logo */}
-            <div className="relative z-10">
-              <Image src="/aibos-logo.png" alt="AIBOS" width={200} height={200} className="object-contain" />
-
-              {/* State indicator below logo */}
-              <div className="mt-4 text-center">
-                <span className={`text-sm font-medium ${voiceAgent.isSpeaking ? 'text-[#0066cc]' : 'text-gray-600'}`}>
-                  {voiceAgent.isSpeaking ? 'Speaking...' : voiceAgent.isThinking ? 'Thinking...' : 'Listening...'}
-                </span>
-              </div>
-            </div>
+            <Image src="/aibos-logo.png" alt="AIBOS" width={200} height={200} className="object-contain relative z-10" />
           </div>
 
-          {/* RIGHT - Timer and Status */}
-          <div className="lg:col-span-1 flex justify-center">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-8">
-              <div className="text-center space-y-4">
-                <div>
-                  <div className="text-sm text-gray-500 mb-2">Interview Time</div>
-                  <div className="text-3xl font-bold text-gray-800">
-                    {formatTime(elapsedTime)}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    of {formatTime(interviewConfig.maxDuration * 60)}
-                  </div>
-                </div>
+          {/* Transcript text - closer to logo with smaller font */}
+          <div className="mt-6 max-w-3xl px-8">
+            <p className="text-sm md:text-base leading-relaxed text-gray-700 text-center">
+              {displayedText || 'Welcome to your interview...'}
+              {isRevealingText && (
+                <span className="inline-block w-0.5 h-4 ml-1 bg-[#0066cc] animate-pulse align-middle" />
+              )}
+            </p>
+          </div>
 
-                <div className="h-px bg-gray-200"></div>
-
-                <button
-                  onClick={handleEndInterview}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full font-medium transition-colors"
-                >
-                  End Interview
-                </button>
-              </div>
-            </div>
+          {/* State indicator below text */}
+          <div className="mt-3 text-center">
+            <span className={`text-xs font-medium ${voiceAgent.isSpeaking ? 'text-[#0066cc]' : 'text-gray-500'}`}>
+              {voiceAgent.isSpeaking ? 'Speaking...' : voiceAgent.isThinking ? 'Thinking...' : 'Listening...'}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Bottom - Minimal Footer */}
-      <div className="flex-shrink-0 p-4 relative z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-xs text-gray-500">
-          <Image src="/aibos-logo.png" alt="AIBOS" width={24} height={24} className="object-contain" />
-          <span>AIBOS AI Interview</span>
-          <span className="mx-2">•</span>
-          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">Demo</span>
-          <span className="mx-2">•</span>
-          <span>{candidateInfo.firstName} × {interviewConfig.companyName}</span>
+      {/* Bottom - Video (Left) and Timer (Right) */}
+      <div className="flex-shrink-0 p-8 relative z-10">
+        <div className="max-w-7xl mx-auto flex items-end justify-between">
+          {/* Bottom Left - Candidate Video */}
+          <div className="candidate-video w-80 h-60 relative rounded-2xl overflow-hidden shadow-2xl">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full">
+              <span className="text-white text-xs font-medium">{candidateInfo.firstName}</span>
+            </div>
+          </div>
+
+          {/* Bottom Right - Timer Card */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="text-center space-y-3">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Interview Time</div>
+                <div className="text-2xl font-bold text-gray-800">
+                  {formatTime(elapsedTime)}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  of {formatTime(interviewConfig.maxDuration * 60)}
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200"></div>
+
+              <button
+                onClick={handleEndInterview}
+                className="w-full bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-full font-medium transition-colors text-sm"
+              >
+                End Interview
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
