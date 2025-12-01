@@ -779,8 +779,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <Image
               src="/aibos-logo.png"
               alt="AIBOS"
-              width={200}
-              height={200}
+              width={240}
+              height={240}
               className={`object-contain transition-transform duration-300 ${voiceAgent.isSpeaking ? 'scale-110' : 'scale-100'}`}
             />
           </div>
