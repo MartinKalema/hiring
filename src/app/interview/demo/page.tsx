@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { useVoiceAgent } from '@/hooks/use-voice-agent'
-import { TerminalTextWord } from '@/components/terminal-text-word'
 
 type InterviewStage = 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 
@@ -36,7 +35,6 @@ export default function DemoInterviewPage() {
   const [selectedMic, setSelectedMic] = useState<string>('')
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
   const [displayedText, setDisplayedText] = useState('')
-  const [isRevealingText, setIsRevealingText] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null)
@@ -45,11 +43,6 @@ export default function DemoInterviewPage() {
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const timeCheckpointsTriggered = useRef<Set<number>>(new Set())
-
-  // Refs for word-by-word text reveal
-  const targetTextRef = useRef('')
-  const wordIndexRef = useRef(0)
-  const wordRevealIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Demo interview configuration
   const interviewConfig = {
@@ -84,57 +77,6 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
   }, [candidateInfo.firstName, candidateInfo.lastName])
 
   // Word-by-word text reveal - shows text progressively as the agent speaks
-  const startWordReveal = useCallback((text: string) => {
-    // Clear any existing interval
-    if (wordRevealIntervalRef.current) {
-      clearInterval(wordRevealIntervalRef.current)
-    }
-
-    // Store the full text and reset index
-    targetTextRef.current = text
-    wordIndexRef.current = 0
-    setIsRevealingText(true)
-    setDisplayedText('')
-
-    // Split text into words
-    const words = text.split(/\s+/)
-    if (words.length === 0) {
-      setDisplayedText(text)
-      setIsRevealingText(false)
-      return
-    }
-
-    // Reveal words at ~240 words per minute (250ms per word)
-    const msPerWord = 250
-
-    wordRevealIntervalRef.current = setInterval(() => {
-      wordIndexRef.current++
-      const currentWords = words.slice(0, wordIndexRef.current)
-      setDisplayedText(currentWords.join(' '))
-
-      // Stop when all words are revealed
-      if (wordIndexRef.current >= words.length) {
-        if (wordRevealIntervalRef.current) {
-          clearInterval(wordRevealIntervalRef.current)
-          wordRevealIntervalRef.current = null
-        }
-        setIsRevealingText(false)
-      }
-    }, msPerWord)
-  }, [])
-
-  const stopWordReveal = useCallback(() => {
-    if (wordRevealIntervalRef.current) {
-      clearInterval(wordRevealIntervalRef.current)
-      wordRevealIntervalRef.current = null
-    }
-    // Show full text when stopping
-    if (targetTextRef.current) {
-      setDisplayedText(targetTextRef.current)
-    }
-    setIsRevealingText(false)
-  }, [])
-
   // Voice agent hook - connected to real Deepgram API
   const voiceAgent = useVoiceAgent({
     apiKey: voiceConfig?.apiKey || '',
@@ -144,15 +86,14 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
     thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
     onTranscript: () => {
-      // Transcript handling removed for cleaner demo UI
+      // Don't clear text when user speaks - keep agent text visible
     },
     onAgentUtterance: (text) => {
-      // Start word-by-word reveal
-      startWordReveal(text)
+      // Clear previous text and show new agent utterance
+      setDisplayedText(text)
     },
     onAgentStoppedSpeaking: () => {
-      // Stop word reveal and show full text when agent stops
-      stopWordReveal()
+      // Do nothing - text stays visible with blinking cursor
     },
     onError: (error) => {
       console.error('Demo interview error:', error)
@@ -779,35 +720,44 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <Image
               src="/aibos-logo.png"
               alt="AIBOS"
-              width={200}
-              height={200}
+              width={240}
+              height={240}
               className={`object-contain transition-transform duration-300 ${voiceAgent.isSpeaking ? 'scale-110' : 'scale-100'}`}
             />
           </div>
 
           {/* Transcript text - terminal style with typing cursor */}
           <div className="mt-8 max-w-6xl px-6">
-            <TerminalTextWord
-              text={displayedText || 'Welcome to your interview...'}
-              typingSpeed={250}
-              className="text-base md:text-lg leading-relaxed text-gray-800 text-center"
-            />
+            <p className="text-sm md:text-base leading-relaxed text-gray-800 text-center font-mono">
+              {displayedText || 'Welcome to your interview...'}
+              <span className="inline-block w-2 h-5 ml-1 bg-[#0066cc] animate-pulse align-middle"></span>
+            </p>
           </div>
 
-          {/* State indicator below text */}
-          <div className="mt-3 text-center">
-            <span className={`text-xs font-medium ${voiceAgent.isSpeaking ? 'text-[#0066cc]' : 'text-gray-500'}`}>
-              {voiceAgent.isSpeaking ? 'Speaking...' : voiceAgent.isThinking ? 'Thinking...' : 'Listening...'}
-            </span>
+          {/* Status badge - below transcript text */}
+          <div className="mt-4 flex justify-center">
+            <div className="px-5 py-2.5 bg-black/90 backdrop-blur-md rounded-full shadow-2xl border border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
+                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
+                </div>
+                <span className="text-sm text-white/90 font-medium">
+                  {voiceAgent.isSpeaking ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
+                </span>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
 
-      {/* Bottom - Video (Far Left) and Timer (Far Right) */}
+      {/* Bottom - Video and Timer */}
       <div className="fixed bottom-0 left-0 right-0 p-6 relative z-10">
-        <div className="w-full flex items-end justify-between">
+        <div className="max-w-7xl mx-auto flex items-end justify-between px-4">
           {/* Bottom Left - Candidate Video */}
-          <div className="candidate-video w-80 h-60 relative rounded-2xl overflow-hidden shadow-2xl ml-0">
+          <div className="candidate-video w-80 h-60 relative rounded-2xl overflow-hidden shadow-2xl">
             <video
               ref={videoRef}
               autoPlay

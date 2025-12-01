@@ -10,18 +10,15 @@ interface TerminalTextWordProps {
 
 export function TerminalTextWord({ text, typingSpeed = 250, className = '' }: TerminalTextWordProps) {
   const [displayedWords, setDisplayedWords] = useState<string[]>([])
-  const [isTyping, setIsTyping] = useState(true)
 
   useEffect(() => {
     if (!text) {
       setDisplayedWords([])
-      setIsTyping(false)
       return
     }
 
     const words = text.split(/\s+/)
     setDisplayedWords([])
-    setIsTyping(true)
     let currentIndex = 0
 
     const interval = setInterval(() => {
@@ -29,7 +26,7 @@ export function TerminalTextWord({ text, typingSpeed = 250, className = '' }: Te
         setDisplayedWords(prev => [...prev, words[currentIndex]])
         currentIndex++
       } else {
-        setIsTyping(false)
+        // Keep cursor blinking after typing is done
         clearInterval(interval)
       }
     }, typingSpeed)
@@ -40,7 +37,8 @@ export function TerminalTextWord({ text, typingSpeed = 250, className = '' }: Te
   return (
     <div className={`font-mono relative ${className}`}>
       <span>{displayedWords.join(' ')}</span>
-      {isTyping && (
+      {/* Show cursor while typing AND after typing is done (always blink when text is present) */}
+      {text && (
         <span className="inline-block w-2 h-5 ml-1 bg-[#0066cc] animate-pulse align-middle"></span>
       )}
     </div>
