@@ -95,8 +95,10 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
       setIsActuallyPlaying(true)
     },
     onAgentStoppedSpeaking: () => {
-      // Audio playback finished - now truly listening
-      setIsActuallyPlaying(false)
+      // Add delay before showing "listening" to account for audio playback lag
+      setTimeout(() => {
+        setIsActuallyPlaying(false)
+      }, 2000) // 2 second delay to ensure audio finishes playing
     },
     onError: (error) => {
       console.error('Demo interview error:', error)
