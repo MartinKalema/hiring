@@ -142,12 +142,18 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
     thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
     thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
-    onTranscript: () => {
-      // Transcript handling removed for cleaner demo UI
+    onTranscript: (text, isFinal) => {
+      // When user speaks (final transcript), clear the agent's text
+      if (isFinal && text.trim()) {
+        setDisplayedText('')
+      }
     },
     onAgentUtterance: (text) => {
-      // Start word-by-word reveal
-      startWordReveal(text)
+      // Append new agent text to existing text
+      setDisplayedText(prev => {
+        const newText = prev ? prev + ' ' + text : text
+        return newText
+      })
     },
     onAgentStoppedSpeaking: () => {
       // Stop word reveal and show full text when agent stops
