@@ -265,7 +265,7 @@ export default function Home() {
               {/* Company Info */}
               <div>
                 <div className="flex items-center mb-4">
-                  <Image src="/aibos-logo.png" alt="AIBOS Logo" width={70} height={70} className="object-contain" />
+                  <Image src="/aibos-logo.png" alt="AIBOS Logo" width={100} height={100} className="object-contain" />
                 </div>
                 <p className="text-xs text-gray-600 mb-4">
                   Building cutting-edge software solutions with exceptional talent.
