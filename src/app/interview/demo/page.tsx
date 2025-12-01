@@ -236,7 +236,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
   const handleContinueToSetup = (e: React.FormEvent) => {
     e.preventDefault()
-    handleStartInterview()
+    setStage('setup')
   }
 
   const handleStartInterview = async () => {
@@ -475,10 +475,10 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     )
   }
 
-  // Setup Screen
+  // Setup Screen - Clean centered design
   if (stage === 'setup') {
     return (
-      <div className="min-h-screen bg-white overflow-hidden relative pt-10">
+      <div className="min-h-screen bg-white overflow-hidden relative flex items-center justify-center">
         <DemoBanner />
 
         {/* AIBOS Background */}
@@ -492,202 +492,93 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             opacity: 0.3,
           }}
         ></div>
-        <header className="interview-header sticky top-10 z-10 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-              </svg>
-            </div>
-            <span className="font-semibold text-gray-900">AIR</span>
-            <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">Demo</span>
-            <span className="text-gray-400 mx-2">|</span>
-            <span className="text-gray-600">{candidateInfo.firstName}&apos;s AI Interview for {interviewConfig.jobTitle}</span>
+
+        <div className="relative z-10 w-full max-w-3xl px-8">
+          <div className="text-center mb-8">
+            <Image src="/aibos-logo.png" alt="AIBOS" width={100} height={100} className="mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-3 font-mono">Device Check</h1>
+            <p className="text-gray-600">Ensure your camera and microphone are working properly</p>
           </div>
+
+          {/* Video Preview - Centered and Large */}
+          <div className="mb-8">
+            <div className="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              {!cameraReady && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
+                  <div className="text-center">
+                    <div className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full mx-auto mb-4" />
+                    <p className="text-white text-lg">Requesting camera access...</p>
+                  </div>
+                </div>
+              )}
+              {cameraReady && (
+                <div className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-green-500/90 backdrop-blur-sm rounded-full">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span className="text-white text-sm font-medium">Camera Ready</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Device Selectors */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <select
+              className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] bg-white text-gray-800"
+              value={selectedCamera}
+              onChange={(e) => setSelectedCamera(e.target.value)}
+            >
+              {devices.cameras.length > 0 ? devices.cameras.map(camera => (
+                <option key={camera.deviceId} value={camera.deviceId}>
+                  📹 {camera.label || 'Camera'}
+                </option>
+              )) : <option>Default Camera</option>}
+            </select>
+            <select
+              className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] bg-white text-gray-800"
+              value={selectedMic}
+              onChange={(e) => setSelectedMic(e.target.value)}
+            >
+              {devices.mics.length > 0 ? devices.mics.map(mic => (
+                <option key={mic.deviceId} value={mic.deviceId}>
+                  🎤 {mic.label || 'Microphone'}
+                </option>
+              )) : <option>Default Microphone</option>}
+            </select>
+          </div>
+
+          {/* Status Checks */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 mb-8">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Camera</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${cameraReady ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {cameraReady ? '✓ Ready' : 'Checking...'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Microphone</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${micReady ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {micReady ? '✓ Ready' : 'Checking...'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Start Button */}
           <button
             onClick={handleStartInterview}
-            className="btn-primary"
             disabled={!cameraReady || !micReady}
+            className="w-full bg-[#0066cc] hover:bg-[#004c99] text-white px-8 py-4 rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg"
           >
-            Start AI interview
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            {cameraReady && micReady ? 'Start Interview →' : 'Waiting for devices...'}
           </button>
-        </header>
-
-        <div className="flex min-h-[calc(100vh-120px)]">
-          {/* Left side - Instructions */}
-          <div className="flex-1 p-8 lg:p-12">
-            <div className="max-w-lg">
-              <p className="text-sm text-gray-500 mb-2">Interview setup</p>
-              <h1 className="text-3xl font-bold text-gray-900 mb-6">
-                Final step before your AI interview
-              </h1>
-
-              <div className="mb-6">
-                <p className="font-medium text-gray-900 mb-2">Before you begin:</p>
-                <ul className="text-gray-600 space-y-1">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                    Make sure your <strong>camera and microphone</strong> are working.
-                  </li>
-                </ul>
-              </div>
-
-              <p className="text-gray-600 mb-6">
-                Your interview will be conducted in <strong>{interviewConfig.language}</strong> and led by AIR, our AI-powered interviewer. Responses are reviewed by the hiring team -- AIR supports fair, consistent evaluations but doesn&apos;t make hiring decisions.
-              </p>
-
-              <p className="text-gray-600 mb-8">
-                When you&apos;re ready, select Start AI interview to begin.
-              </p>
-
-              <button
-                onClick={handleStartInterview}
-                className="btn-primary"
-                disabled={!cameraReady || !micReady}
-              >
-                Start AI interview
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* What to expect section */}
-              <div className="mt-12">
-                <p className="text-sm text-gray-500 mb-2">Let&apos;s prep</p>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  What to expect with your AI interview
-                </h2>
-
-                <div className="space-y-1">
-                  <div className="expect-item">
-                    <div className="expect-icon expect-icon-check">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Pauses are Normal</p>
-                      <p className="text-sm text-gray-600">Allow AIR time to process before the next question.</p>
-                    </div>
-                  </div>
-
-                  <div className="expect-item">
-                    <div className="expect-icon expect-icon-check">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Completion notification</p>
-                      <p className="text-sm text-gray-600">You&apos;ll be notified when the interview is done. Stay until it&apos;s complete.</p>
-                    </div>
-                  </div>
-
-                  <div className="expect-item">
-                    <div className="expect-icon expect-icon-video">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Video recordings</p>
-                      <p className="text-sm text-gray-600">Your responses will be video recorded and shared only with the hiring team.</p>
-                    </div>
-                  </div>
-
-                  <div className="expect-item">
-                    <div className="expect-icon expect-icon-alert">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">One-time responses</p>
-                      <p className="text-sm text-gray-600">No re-dos once you start, so treat it like a live interview.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right side - Video preview */}
-          <div className="flex-1 p-8 lg:p-12 flex flex-col">
-            <div className="flex-1 relative">
-              <div className="relative w-full h-full max-h-[500px] bg-gray-900 rounded-xl overflow-hidden shadow-2xl">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-
-                {!cameraReady && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="animate-spin w-8 h-8 border-4 border-white border-t-transparent rounded-full mx-auto mb-4" />
-                      <p className="text-white">Requesting camera access...</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-green-500 shadow-lg" />
-              </div>
-            </div>
-
-            {/* Device selectors */}
-            <div className="mt-6 flex gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg border border-gray-200">
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  <select
-                    className="flex-1 bg-transparent border-none text-sm text-gray-700 focus:outline-none"
-                    value={selectedCamera}
-                    onChange={(e) => setSelectedCamera(e.target.value)}
-                  >
-                    {devices.cameras.length > 0 ? (
-                      devices.cameras.map(camera => (
-                        <option key={camera.deviceId} value={camera.deviceId}>
-                          {camera.label || 'Camera'}
-                        </option>
-                      ))
-                    ) : (
-                      <option>Default Camera</option>
-                    )}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center gap-2 px-4 py-3 bg-white rounded-lg border border-gray-200">
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                  <select
-                    className="flex-1 bg-transparent border-none text-sm text-gray-700 focus:outline-none"
-                    value={selectedMic}
-                    onChange={(e) => setSelectedMic(e.target.value)}
-                  >
-                    {devices.mics.length > 0 ? (
-                      devices.mics.map(mic => (
-                        <option key={mic.deviceId} value={mic.deviceId}>
-                          {mic.label || 'Microphone'}
-                        </option>
-                      ))
-                    ) : (
-                      <option>Default Microphone</option>
-                    )}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     )
