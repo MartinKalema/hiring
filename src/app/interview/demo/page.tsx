@@ -734,30 +734,27 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             </p>
           </div>
 
-          {/* Just show the agent state - minimal and clean */}
-          <div className="mt-4">
-            {voiceAgent.isSpeaking && (
-              <div className="flex justify-center items-center gap-2">
-                <div className="flex gap-1 items-end h-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-1 bg-[#0066cc] rounded-full animate-pulse"
-                      style={{
-                        animationDelay: `${i * 100}ms`,
-                        height: `${12 + (i % 2) * 4}px`,
-                      }}
-                    ></div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
       {/* Bottom - Video (Far Left) and Timer (Far Right) */}
       <div className="fixed bottom-0 left-0 right-0 p-6 relative z-10">
+        {/* Status badge - center bottom */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+          <div className="px-5 py-2.5 bg-black/90 backdrop-blur-md rounded-full shadow-2xl border border-white/10">
+            <div className="flex items-center gap-2.5">
+              <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
+              </div>
+              <span className="text-sm text-white/90 font-medium">
+                {voiceAgent.isSpeaking ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="w-full flex items-end justify-between">
           {/* Bottom Left - Candidate Video */}
           <div className="candidate-video w-80 h-60 relative rounded-2xl overflow-hidden shadow-2xl ml-0">
