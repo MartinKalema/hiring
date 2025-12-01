@@ -430,6 +430,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <div className="absolute top-24 right-2/5 opacity-24">
               <Image src="/tech-logos/googlecloud-original.svg" alt="Google Cloud" width={50} height={50} />
             </div>
+            <div className="absolute top-2/5 right-1/4 opacity-27">
+              <Image src="/tech-logos/pytorch-original.svg" alt="PyTorch" width={48} height={48} />
+            </div>
+            <div className="absolute bottom-2/5 left-1/4 opacity-26">
+              <Image src="/tech-logos/tensorflow-original.svg" alt="TensorFlow" width={46} height={46} />
+            </div>
 
             {/* Huge AIBOS Logo */}
             <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90 relative z-10" />
