@@ -2,7 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useVoiceAgent } from '@/hooks/use-voice-agent'
+
+const AnimationManager = dynamic(() => import('@/components/AnimationManager'), {
+  ssr: false,
+})
 
 type InterviewStage = 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 
@@ -724,24 +729,21 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
       {/* Center - AIBOS Logo with Speaking Animation and Text */}
       <div className="flex-1 flex items-center justify-center relative z-10">
         <div className="flex flex-col items-center">
-          {/* Speaking animation rings behind logo */}
-          <div className="relative">
-            {voiceAgent.isSpeaking && (
-              <>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-64 h-64 rounded-full border-2 border-[#0066cc]/20 animate-ping" style={{ animationDuration: '2s' }}></div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-56 h-56 rounded-full border-2 border-[#0099ff]/30 animate-ping" style={{ animationDuration: '1.5s' }}></div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-48 h-48 rounded-full border-2 border-[#0066cc]/40 animate-ping" style={{ animationDuration: '1s' }}></div>
-                </div>
-              </>
-            )}
+          {/* Deepgram Hal Animation with AIBOS Logo */}
+          <div className="relative w-80 h-80">
+            {/* Hal orb animation */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <AnimationManager
+                agentVoiceAnalyser={undefined}
+                userVoiceAnalyser={undefined}
+                agentState={voiceAgent.agentState}
+              />
+            </div>
 
-            {/* AIBOS Logo */}
-            <Image src="/aibos-logo.png" alt="AIBOS" width={200} height={200} className="object-contain relative z-10" />
+            {/* AIBOS Logo overlaid on top */}
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <Image src="/aibos-logo.png" alt="AIBOS" width={180} height={180} className="object-contain" />
+            </div>
           </div>
 
           {/* Transcript text - closer to logo with smaller font */}
