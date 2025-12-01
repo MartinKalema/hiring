@@ -2,12 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import { useVoiceAgent } from '@/hooks/use-voice-agent'
-
-const AnimationManager = dynamic(() => import('@/components/AnimationManager'), {
-  ssr: false,
-})
+import { TerminalText } from '@/components/terminal-text'
 
 type InterviewStage = 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 
@@ -729,31 +725,26 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
       {/* Center - AIBOS Logo with Speaking Animation and Text */}
       <div className="flex-1 flex items-center justify-center relative z-10">
         <div className="flex flex-col items-center">
-          {/* Deepgram Hal Animation with AIBOS Logo */}
-          <div className="relative w-80 h-80">
-            {/* Hal orb animation */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <AnimationManager
-                agentVoiceAnalyser={undefined}
-                userVoiceAnalyser={undefined}
-                agentState={voiceAgent.agentState}
-              />
-            </div>
-
-            {/* AIBOS Logo overlaid on top */}
-            <div className="absolute inset-0 flex items-center justify-center z-10">
-              <Image src="/aibos-logo.png" alt="AIBOS" width={180} height={180} className="object-contain" />
-            </div>
+          {/* AIBOS Logo with zoom animation */}
+          <div className="relative">
+            <Image
+              src="/aibos-logo.png"
+              alt="AIBOS"
+              width={200}
+              height={200}
+              className={`object-contain transition-transform duration-300 ${voiceAgent.isSpeaking ? 'scale-110' : 'scale-100'}`}
+            />
           </div>
 
           {/* Transcript text - terminal style with wider width */}
-          <div className="mt-6 max-w-5xl px-4">
-            <p className="text-sm md:text-base leading-relaxed text-gray-800 text-center font-mono">
-              {displayedText || 'Welcome to your interview...'}
-              {isRevealingText && (
-                <span className="inline-block w-0.5 h-4 ml-1 bg-[#0066cc] animate-pulse align-middle" />
-              )}
-            </p>
+          <div className="mt-8 max-w-6xl px-6">
+            <div className="text-base md:text-lg leading-relaxed text-gray-800 text-center font-mono">
+              <TerminalText
+                text={displayedText || 'Welcome to your interview...'}
+                typingSpeed={30}
+                resetInterval={0}
+              />
+            </div>
           </div>
 
           {/* State indicator below text */}
