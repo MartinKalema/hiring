@@ -17,11 +17,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AIBOS - Job Application Portal",
   description: "Apply for open positions at AIBOS",
-  icons: {
-    icon: '/aibos-logo.png',
-    shortcut: '/aibos-logo.png',
-    apple: '/aibos-logo.png',
-  },
 }
 
 export default function RootLayout({
