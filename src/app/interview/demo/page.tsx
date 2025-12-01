@@ -380,10 +380,6 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         <div className="grid lg:grid-cols-2 min-h-screen">
           {/* Left side - Full height decorative area with huge AIBOS logo */}
           <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-[#0066cc]/5 to-blue-50/30 items-center justify-center">
-            {/* Background decorative elements */}
-            <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-[#0066cc]/5 opacity-60"></div>
-            <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-blue-100 opacity-40"></div>
-
             {/* Tech logos spread across entire panel */}
             <div className="absolute top-12 left-8 opacity-30">
               <Image src="/tech-logos/python-original.svg" alt="Python" width={50} height={50} />
