@@ -71,6 +71,12 @@ Interview structure:
 4. For each answer, probe deeper if needed
 5. Close with thanks
 
+EARLY TERMINATION:
+If the candidate says they want to stop, end early, or need to leave:
+- Politely acknowledge: "I understand, ${candidateInfo.firstName}."
+- Say: "Please click the 'End Interview' button at the bottom right to complete the session. Thank you for your time!"
+- Do NOT ask any more questions after they request to end
+
 Candidate name: ${candidateInfo.firstName} ${candidateInfo.lastName}
 Maximum duration: ${interviewConfig.maxDuration} minutes
 
