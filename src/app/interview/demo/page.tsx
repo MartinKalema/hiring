@@ -734,26 +734,27 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             </p>
           </div>
 
+          {/* Status badge - below transcript text */}
+          <div className="mt-4 flex justify-center">
+            <div className="px-5 py-2.5 bg-black/90 backdrop-blur-md rounded-full shadow-2xl border border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
+                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
+                </div>
+                <span className="text-sm text-white/90 font-medium">
+                  {voiceAgent.isSpeaking ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
+                </span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
       {/* Bottom - Video (Far Left) and Timer (Far Right) */}
       <div className="fixed bottom-0 left-0 right-0 p-6 relative z-10">
-        {/* Status badge - center bottom */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <div className="px-5 py-2.5 bg-black/90 backdrop-blur-md rounded-full shadow-2xl border border-white/10">
-            <div className="flex items-center gap-2.5">
-              <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
-                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
-                <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
-              </div>
-              <span className="text-sm text-white/90 font-medium">
-                {voiceAgent.isSpeaking ? "I'm speaking..." : voiceAgent.isThinking ? "I'm thinking..." : "I'm listening..."}
-              </span>
-            </div>
-          </div>
-        </div>
 
         <div className="w-full flex items-end justify-between">
           {/* Bottom Left - Candidate Video */}
