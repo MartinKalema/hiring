@@ -391,43 +391,43 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <div className="absolute top-16 right-12 opacity-28">
               <Image src="/tech-logos/git-original.svg" alt="Git" width={45} height={45} />
             </div>
-            <div className="absolute top-28 left-1/4 opacity-32">
+            <div className="absolute top-1/4 left-1/3 opacity-32">
               <Image src="/tech-logos/react-original.svg" alt="React" width={55} height={55} />
             </div>
-            <div className="absolute top-32 right-1/6 opacity-30">
+            <div className="absolute top-20 right-1/4 opacity-30">
               <Image src="/tech-logos/typescript-original.svg" alt="TypeScript" width={48} height={48} />
             </div>
-            <div className="absolute top-1/2 right-8 opacity-26">
+            <div className="absolute top-1/2 right-1/5 opacity-26">
               <Image src="/tech-logos/docker-original.svg" alt="Docker" width={52} height={52} />
             </div>
-            <div className="absolute bottom-20 left-12 opacity-29">
+            <div className="absolute bottom-1/5 left-1/6 opacity-29">
               <Image src="/tech-logos/nodejs-original.svg" alt="Node.js" width={50} height={50} />
             </div>
-            <div className="absolute top-1/4 right-20 opacity-25">
+            <div className="absolute top-1/6 right-2/5 opacity-25">
               <Image src="/tech-logos/postgresql-original.svg" alt="PostgreSQL" width={46} height={46} />
             </div>
-            <div className="absolute bottom-1/3 left-20 opacity-24">
+            <div className="absolute bottom-1/3 left-1/3 opacity-24">
               <Image src="/tech-logos/kubernetes-original.svg" alt="Kubernetes" width={48} height={48} />
             </div>
-            <div className="absolute top-2/3 left-10 opacity-27">
+            <div className="absolute top-2/3 left-1/5 opacity-27">
               <Image src="/tech-logos/go-original.svg" alt="Golang" width={50} height={50} />
             </div>
-            <div className="absolute bottom-1/4 right-16 opacity-26">
+            <div className="absolute bottom-1/4 right-1/3 opacity-26">
               <Image src="/tech-logos/cplusplus-original.svg" alt="C++" width={46} height={46} />
             </div>
-            <div className="absolute top-1/3 left-12 opacity-23">
+            <div className="absolute top-2/5 left-1/4 opacity-23">
               <Image src="/tech-logos/redis-original.svg" alt="Redis" width={44} height={44} />
             </div>
-            <div className="absolute bottom-12 right-20 opacity-28">
+            <div className="absolute bottom-1/6 right-1/5 opacity-28">
               <Image src="/tech-logos/java-original.svg" alt="Java" width={48} height={48} />
             </div>
-            <div className="absolute top-1/2 left-16 opacity-25">
+            <div className="absolute top-1/2 left-2/5 opacity-25">
               <Image src="/tech-logos/mongodb-original.svg" alt="MongoDB" width={46} height={46} />
             </div>
-            <div className="absolute bottom-2/5 right-12 opacity-22">
+            <div className="absolute bottom-2/5 right-2/5 opacity-22">
               <Image src="/tech-logos/graphql-plain.svg" alt="GraphQL" width={42} height={42} />
             </div>
-            <div className="absolute top-20 right-1/3 opacity-24">
+            <div className="absolute top-1/5 right-1/3 opacity-24">
               <Image src="/tech-logos/googlecloud-original.svg" alt="Google Cloud" width={50} height={50} />
             </div>
 
