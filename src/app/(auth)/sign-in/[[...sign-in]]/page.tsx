@@ -1,4 +1,10 @@
 import { SignIn } from '@clerk/nextjs'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Sign In - AIBOS',
+  description: 'Sign in to your AIBOS account',
+}
 
 export default function SignInPage() {
   return (

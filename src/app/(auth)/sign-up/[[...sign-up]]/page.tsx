@@ -1,4 +1,10 @@
 import { SignUp } from '@clerk/nextjs'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Sign Up - AIBOS',
+  description: 'Create your AIBOS account',
+}
 
 export default function SignUpPage() {
   return (
