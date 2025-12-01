@@ -205,8 +205,7 @@ export class DeepgramVoiceAgent {
               this.callbacks.onAudioPlaybackStart?.()
             } else if (data.type === 'AgentAudioDone') {
               this.setAgentState('listening')
-              // Don't call onAudioPlaybackEnd here - wait for actual audio to finish playing
-              // The onended event in playAudioBuffer will call it when last buffer finishes
+              this.callbacks.onAudioPlaybackEnd?.()
             } else if (data.type === 'ConversationText') {
               if (data.role === 'user') {
                 this.callbacks.onUserTranscript?.(data.content, true)
@@ -334,16 +333,6 @@ export class DeepgramVoiceAgent {
 
     source.start(this.startTimeRef.current)
     this.startTimeRef.current += buffer.duration
-
-    // Track when this specific audio buffer finishes playing
-    source.onended = () => {
-      // Check if this is the last scheduled audio source
-      const isLastSource = this.scheduledAudioSources[this.scheduledAudioSources.length - 1] === source
-      if (isLastSource) {
-        // All audio has finished playing
-        this.callbacks.onAudioPlaybackEnd?.()
-      }
-    }
 
     return source
   }
