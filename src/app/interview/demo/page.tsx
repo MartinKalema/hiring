@@ -389,9 +389,15 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
           {/* Right side - Form */}
           <div className="flex items-center justify-center p-8 lg:p-12 relative">
-            {/* Back to Home link - top right */}
-            <a href="/" className="absolute top-8 right-8 text-sm text-gray-600 hover:text-[#0066cc] transition-colors">
-              ← Back to Home
+            {/* Close/Back button - top right */}
+            <a
+              href="/"
+              className="absolute top-8 right-8 w-10 h-10 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-[#0066cc] hover:bg-[#0066cc]/5 transition-all group"
+              aria-label="Back to Home"
+            >
+              <svg className="w-5 h-5 text-gray-600 group-hover:text-[#0066cc] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </a>
 
             <div className="w-full max-w-md">
