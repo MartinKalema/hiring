@@ -384,8 +384,15 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-[#0066cc]/5 opacity-60"></div>
             <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-blue-100 opacity-40"></div>
 
+            {/* Floating robot emojis - sketch style */}
+            <div className="absolute top-10 left-20 text-6xl opacity-30 animate-bounce" style={{ animationDuration: '3s' }}>🤖</div>
+            <div className="absolute top-32 right-24 text-5xl opacity-25 animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>🤖</div>
+            <div className="absolute bottom-32 left-16 text-7xl opacity-20 animate-bounce" style={{ animationDuration: '5s', animationDelay: '1s' }}>🤖</div>
+            <div className="absolute bottom-16 right-32 text-5xl opacity-30 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '1.5s' }}>🤖</div>
+            <div className="absolute top-1/2 left-12 text-6xl opacity-15 animate-bounce" style={{ animationDuration: '4.5s', animationDelay: '2s' }}>🤖</div>
+
             {/* Huge AIBOS Logo */}
-            <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90" />
+            <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90 relative z-10" />
           </div>
 
           {/* Right side - Form */}
