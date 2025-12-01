@@ -409,6 +409,27 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <div className="absolute bottom-1/3 left-1/3 opacity-24">
               <Image src="/tech-logos/kubernetes-original.svg" alt="Kubernetes" width={48} height={48} />
             </div>
+            <div className="absolute top-3/5 left-1/5 opacity-27">
+              <Image src="/tech-logos/go-original.svg" alt="Golang" width={50} height={50} />
+            </div>
+            <div className="absolute bottom-2/5 right-1/4 opacity-26">
+              <Image src="/tech-logos/cplusplus-original.svg" alt="C++" width={46} height={46} />
+            </div>
+            <div className="absolute top-2/5 left-2/5 opacity-23">
+              <Image src="/tech-logos/redis-original.svg" alt="Redis" width={44} height={44} />
+            </div>
+            <div className="absolute bottom-1/5 right-1/3 opacity-28">
+              <Image src="/tech-logos/java-original.svg" alt="Java" width={48} height={48} />
+            </div>
+            <div className="absolute top-1/2 left-1/4 opacity-25">
+              <Image src="/tech-logos/mongodb-original.svg" alt="MongoDB" width={46} height={46} />
+            </div>
+            <div className="absolute bottom-3/5 right-2/5 opacity-22">
+              <Image src="/tech-logos/graphql-plain.svg" alt="GraphQL" width={42} height={42} />
+            </div>
+            <div className="absolute top-1/6 right-2/5 opacity-24">
+              <Image src="/tech-logos/googlecloud-original.svg" alt="Google Cloud" width={50} height={50} />
+            </div>
 
             {/* Huge AIBOS Logo */}
             <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90 relative z-10" />
