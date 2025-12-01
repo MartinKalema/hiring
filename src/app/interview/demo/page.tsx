@@ -377,11 +377,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         ></div>
 
         {/* Header */}
-        <header className="relative z-10 px-8 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image src="/aibos-logo.png" alt="AIBOS" width={60} height={60} className="object-contain" />
-            <span className="ml-2 px-2.5 py-0.5 bg-blue-50 text-[#0066cc] text-xs rounded-full border border-[#0066cc]/20">Demo Mode</span>
-          </div>
+        <header className="relative z-10 px-8 py-6 flex items-center justify-end">
           <a href="/" className="text-sm text-gray-600 hover:text-[#0066cc] transition-colors">
             ← Back to Home
           </a>
