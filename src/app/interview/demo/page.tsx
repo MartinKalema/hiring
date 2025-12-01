@@ -384,12 +384,48 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-[#0066cc]/5 opacity-60"></div>
             <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-blue-100 opacity-40"></div>
 
-            {/* Floating robot emojis - sketch style */}
-            <div className="absolute top-10 left-20 text-6xl opacity-30 animate-bounce" style={{ animationDuration: '3s' }}>🤖</div>
-            <div className="absolute top-32 right-24 text-5xl opacity-25 animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>🤖</div>
-            <div className="absolute bottom-32 left-16 text-7xl opacity-20 animate-bounce" style={{ animationDuration: '5s', animationDelay: '1s' }}>🤖</div>
-            <div className="absolute bottom-16 right-32 text-5xl opacity-30 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '1.5s' }}>🤖</div>
-            <div className="absolute top-1/2 left-12 text-6xl opacity-15 animate-bounce" style={{ animationDuration: '4.5s', animationDelay: '2s' }}>🤖</div>
+            {/* Floating tech icons - sketch style */}
+            {/* CPU/Chip icon */}
+            <div className="absolute top-16 left-12 opacity-20">
+              <svg className="w-16 h-16 text-[#0066cc]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              </svg>
+            </div>
+
+            {/* Code brackets icon */}
+            <div className="absolute top-1/3 right-16 opacity-15">
+              <svg className="w-20 h-20 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+            </div>
+
+            {/* Terminal/Monitor icon */}
+            <div className="absolute bottom-24 left-20 opacity-25">
+              <svg className="w-14 h-14 text-[#0066cc]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+
+            {/* Lightning/Bolt icon */}
+            <div className="absolute top-1/2 left-8 opacity-20">
+              <svg className="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+
+            {/* Sliders/Settings icon */}
+            <div className="absolute bottom-40 right-20 opacity-18">
+              <svg className="w-16 h-16 text-[#0066cc]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+            </div>
+
+            {/* Terminal window icon */}
+            <div className="absolute top-40 right-8 opacity-22">
+              <svg className="w-18 h-18 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
 
             {/* Huge AIBOS Logo */}
             <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90 relative z-10" />
