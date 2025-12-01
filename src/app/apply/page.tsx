@@ -27,11 +27,11 @@ const formSchema = z.object({
   phone: z.string().min(10, {
     message: "Please enter a valid phone number.",
   }),
-  position: z.string({
-    required_error: "Please select a position.",
+  position: z.string().min(1, {
+    message: "Please select a position.",
   }),
-  experience: z.string({
-    required_error: "Please select your experience level.",
+  experience: z.string().min(1, {
+    message: "Please select your experience level.",
   }),
   coverLetter: z.string().min(50, {
     message: "Cover letter must be at least 50 characters.",

@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { ClerkProvider } from "@clerk/nextjs"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 
@@ -16,7 +17,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AIBOS - Job Application Portal",
   description: "Apply for open positions at AIBOS",
-    generator: 'v0.app'
 }
 
 export default function RootLayout({
@@ -24,12 +24,50 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // We're Hiring. Send us your CV to info@aibos.com
-  console.log("We're Hiring. Send us your CV to info@aibos.com")
-
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="font-mono text-[0.85rem]">{children}</body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        baseTheme: undefined, // Use light mode (default)
+        variables: {
+          colorPrimary: '#0066cc', // AIBOS blue
+          colorBackground: '#ffffff', // White background
+          colorInputBackground: '#ffffff',
+          colorInputText: '#1f2937',
+          colorText: '#374151',
+          colorTextSecondary: '#6b7280',
+          borderRadius: '0.5rem',
+        },
+        elements: {
+          card: 'bg-white shadow-xl',
+          headerTitle: 'text-gray-900 font-mono',
+          headerSubtitle: 'text-gray-600',
+          socialButtonsBlockButton: 'border-gray-200 hover:bg-gray-50',
+          formButtonPrimary: 'bg-[#0066cc] hover:bg-[#004c99] text-white',
+          footerActionLink: 'text-[#0066cc] hover:text-[#004c99]',
+        },
+        layout: {
+          socialButtonsPlacement: 'bottom',
+          socialButtonsVariant: 'iconButton',
+        },
+      }}
+      localization={{
+        signIn: {
+          start: {
+            title: 'Sign in',
+            subtitle: 'Welcome back! Please sign in to continue',
+          },
+        },
+        signUp: {
+          start: {
+            title: 'Sign up',
+            subtitle: 'Create your account to get started',
+          },
+        },
+      }}
+    >
+      <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+        <body className="font-mono text-[0.85rem]">{children}</body>
+      </html>
+    </ClerkProvider>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { useVoiceAgent } from '@/hooks/use-voice-agent'
+import { TerminalTextWord } from '@/components/terminal-text-word'
 
 type InterviewStage = 'welcome' | 'setup' | 'joining' | 'active' | 'completed'
 
@@ -349,9 +350,9 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
   // Demo Banner Component
   const DemoBanner = () => (
-    <div className="fixed top-0 left-0 right-0 bg-amber-500 text-amber-900 py-2 px-4 text-center text-sm font-medium z-50">
+    <div className="fixed top-0 left-0 right-0 bg-[#0066cc] text-white py-2 px-4 text-center text-sm font-medium z-50">
       Demo Mode - This is a preview of the candidate interview experience.{' '}
-      <a href="/interviews/new" className="underline hover:no-underline">
+      <a href="/interviews/new" className="text-white underline hover:no-underline">
         Create a real interview
       </a>
     </div>
@@ -379,12 +380,61 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         <div className="grid lg:grid-cols-2 min-h-screen">
           {/* Left side - Full height decorative area with huge AIBOS logo */}
           <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-[#0066cc]/5 to-blue-50/30 items-center justify-center">
-            {/* Background decorative elements */}
-            <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-[#0066cc]/5 opacity-60"></div>
-            <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-blue-100 opacity-40"></div>
+            {/* Tech logos spread across entire panel */}
+            <div className="absolute top-12 left-8 opacity-30">
+              <Image src="/tech-logos/python-original.svg" alt="Python" width={50} height={50} />
+            </div>
+            <div className="absolute top-16 right-12 opacity-28">
+              <Image src="/tech-logos/git-original.svg" alt="Git" width={45} height={45} />
+            </div>
+            <div className="absolute top-1/4 left-1/3 opacity-32">
+              <Image src="/tech-logos/react-original.svg" alt="React" width={55} height={55} />
+            </div>
+            <div className="absolute top-1/3 right-2/5 opacity-30">
+              <Image src="/tech-logos/typescript-original.svg" alt="TypeScript" width={48} height={48} />
+            </div>
+            <div className="absolute top-1/2 right-10 opacity-26">
+              <Image src="/tech-logos/docker-original.svg" alt="Docker" width={52} height={52} />
+            </div>
+            <div className="absolute bottom-1/3 left-2/5 opacity-29">
+              <Image src="/tech-logos/nodejs-original.svg" alt="Node.js" width={50} height={50} />
+            </div>
+            <div className="absolute top-20 right-1/4 opacity-25">
+              <Image src="/tech-logos/postgresql-original.svg" alt="PostgreSQL" width={46} height={46} />
+            </div>
+            <div className="absolute bottom-20 left-1/4 opacity-24">
+              <Image src="/tech-logos/kubernetes-original.svg" alt="Kubernetes" width={48} height={48} />
+            </div>
+            <div className="absolute top-3/4 left-12 opacity-27">
+              <Image src="/tech-logos/go-original.svg" alt="Golang" width={50} height={50} />
+            </div>
+            <div className="absolute bottom-16 right-1/4 opacity-26">
+              <Image src="/tech-logos/cplusplus-original.svg" alt="C++" width={46} height={46} />
+            </div>
+            <div className="absolute top-1/3 left-16 opacity-23">
+              <Image src="/tech-logos/redis-original.svg" alt="Redis" width={44} height={44} />
+            </div>
+            <div className="absolute bottom-12 right-16 opacity-28">
+              <Image src="/tech-logos/java-original.svg" alt="Java" width={48} height={48} />
+            </div>
+            <div className="absolute top-2/3 right-1/4 opacity-25">
+              <Image src="/tech-logos/mongodb-original.svg" alt="MongoDB" width={46} height={46} />
+            </div>
+            <div className="absolute bottom-1/3 right-16 opacity-22">
+              <Image src="/tech-logos/graphql-plain.svg" alt="GraphQL" width={42} height={42} />
+            </div>
+            <div className="absolute top-24 right-2/5 opacity-24">
+              <Image src="/tech-logos/googlecloud-original.svg" alt="Google Cloud" width={50} height={50} />
+            </div>
+            <div className="absolute top-2/5 right-1/4 opacity-27">
+              <Image src="/tech-logos/pytorch-original.svg" alt="PyTorch" width={48} height={48} />
+            </div>
+            <div className="absolute bottom-2/5 left-1/4 opacity-26">
+              <Image src="/tech-logos/tensorflow-original.svg" alt="TensorFlow" width={46} height={46} />
+            </div>
 
-            {/* Huge AIBOS Logo */}
-            <Image src="/aibos-logo.png" alt="AIBOS" width={400} height={400} className="object-contain opacity-90" />
+            {/* AIBOS Logo */}
+            <Image src="/aibos-logo.png" alt="AIBOS" width={320} height={320} className="object-contain opacity-90 relative z-10" />
           </div>
 
           {/* Right side - Form */}
@@ -402,11 +452,11 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
             <div className="w-full max-w-md">
               <h1 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
-                Welcome to your AI interview
+                Try a Live AI Interview
               </h1>
 
               <p className="text-gray-600 mb-8 text-sm">
-                Enter your details to begin. The interview will be conducted by our AI interviewer for the <strong>{interviewConfig.jobTitle}</strong> position.
+                Experience our AI interviewer in action for the <strong>{interviewConfig.jobTitle}</strong> position. Enter your details to begin the demo.
               </p>
 
               <form onSubmit={handleContinueToSetup} className="space-y-5">
@@ -721,104 +771,78 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
       <div className="absolute top-40 right-1/4 w-6 h-6 rounded-full bg-[#0066cc]/30 opacity-20"></div>
       <div className="absolute top-60 left-1/4 w-4 h-4 rounded-full bg-blue-500 opacity-30"></div>
 
-      {/* Top - AI transcript text */}
-      <div className="flex-shrink-0 p-6 md:p-8 pt-12 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-lg md:text-xl leading-relaxed text-gray-800 text-center">
-            {displayedText || 'Welcome to your interview...'}
-            {isRevealingText && (
-              <span className="inline-block w-0.5 h-6 ml-1 bg-[#0066cc] animate-pulse align-middle" />
-            )}
-          </p>
-        </div>
-      </div>
-
-      {/* Center - Main Interview Area */}
-      <div className="flex-1 flex items-center justify-center px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl items-center">
-          {/* LEFT - Candidate Video (50% larger) */}
-          <div className="lg:col-span-1 flex justify-center">
-            <div className="candidate-video w-96 h-72 relative rounded-2xl overflow-hidden shadow-2xl">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full">
-                <span className="text-white text-xs font-medium">{candidateInfo.firstName}</span>
-              </div>
-            </div>
+      {/* Center - AIBOS Logo with Speaking Animation and Text */}
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <div className="flex flex-col items-center">
+          {/* AIBOS Logo with zoom animation */}
+          <div className="relative">
+            <Image
+              src="/aibos-logo.png"
+              alt="AIBOS"
+              width={200}
+              height={200}
+              className={`object-contain transition-transform duration-300 ${voiceAgent.isSpeaking ? 'scale-110' : 'scale-100'}`}
+            />
           </div>
 
-          {/* CENTER - AIBOS Logo with Speaking Animation */}
-          <div className="lg:col-span-1 flex justify-center relative">
-            {/* Speaking animation rings behind logo */}
-            {voiceAgent.isSpeaking && (
-              <>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-64 h-64 rounded-full border-2 border-[#0066cc]/20 animate-ping" style={{ animationDuration: '2s' }}></div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-56 h-56 rounded-full border-2 border-[#0099ff]/30 animate-ping" style={{ animationDuration: '1.5s' }}></div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-48 h-48 rounded-full border-2 border-[#0066cc]/40 animate-ping" style={{ animationDuration: '1s' }}></div>
-                </div>
-              </>
-            )}
-
-            {/* AIBOS Logo */}
-            <div className="relative z-10">
-              <Image src="/aibos-logo.png" alt="AIBOS" width={200} height={200} className="object-contain" />
-
-              {/* State indicator below logo */}
-              <div className="mt-4 text-center">
-                <span className={`text-sm font-medium ${voiceAgent.isSpeaking ? 'text-[#0066cc]' : 'text-gray-600'}`}>
-                  {voiceAgent.isSpeaking ? 'Speaking...' : voiceAgent.isThinking ? 'Thinking...' : 'Listening...'}
-                </span>
-              </div>
-            </div>
+          {/* Transcript text - terminal style with typing cursor */}
+          <div className="mt-8 max-w-6xl px-6">
+            <TerminalTextWord
+              text={displayedText || 'Welcome to your interview...'}
+              typingSpeed={250}
+              className="text-base md:text-lg leading-relaxed text-gray-800 text-center"
+            />
           </div>
 
-          {/* RIGHT - Timer and Status */}
-          <div className="lg:col-span-1 flex justify-center">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-8">
-              <div className="text-center space-y-4">
-                <div>
-                  <div className="text-sm text-gray-500 mb-2">Interview Time</div>
-                  <div className="text-3xl font-bold text-gray-800">
-                    {formatTime(elapsedTime)}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    of {formatTime(interviewConfig.maxDuration * 60)}
-                  </div>
-                </div>
-
-                <div className="h-px bg-gray-200"></div>
-
-                <button
-                  onClick={handleEndInterview}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full font-medium transition-colors"
-                >
-                  End Interview
-                </button>
-              </div>
-            </div>
+          {/* State indicator below text */}
+          <div className="mt-3 text-center">
+            <span className={`text-xs font-medium ${voiceAgent.isSpeaking ? 'text-[#0066cc]' : 'text-gray-500'}`}>
+              {voiceAgent.isSpeaking ? 'Speaking...' : voiceAgent.isThinking ? 'Thinking...' : 'Listening...'}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Bottom - Minimal Footer */}
-      <div className="flex-shrink-0 p-4 relative z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-xs text-gray-500">
-          <Image src="/aibos-logo.png" alt="AIBOS" width={24} height={24} className="object-contain" />
-          <span>AIBOS AI Interview</span>
-          <span className="mx-2">•</span>
-          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">Demo</span>
-          <span className="mx-2">•</span>
-          <span>{candidateInfo.firstName} × {interviewConfig.companyName}</span>
+      {/* Bottom - Video (Far Left) and Timer (Far Right) */}
+      <div className="fixed bottom-0 left-0 right-0 p-6 relative z-10">
+        <div className="w-full flex items-end justify-between">
+          {/* Bottom Left - Candidate Video */}
+          <div className="candidate-video w-80 h-60 relative rounded-2xl overflow-hidden shadow-2xl ml-0">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full">
+              <span className="text-white text-xs font-medium">{candidateInfo.firstName}</span>
+            </div>
+          </div>
+
+          {/* Bottom Right - Timer Card */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="text-center space-y-3">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Interview Time</div>
+                <div className="text-2xl font-bold text-gray-800">
+                  {formatTime(elapsedTime)}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  of {formatTime(interviewConfig.maxDuration * 60)}
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200"></div>
+
+              <button
+                onClick={handleEndInterview}
+                className="w-full bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-full font-medium transition-colors text-sm"
+              >
+                End Interview
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
