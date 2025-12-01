@@ -764,8 +764,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
       </div>
 
       {/* Bottom - Video (Far Left) and Timer (Far Right) */}
-      <div className="flex-shrink-0 p-8 relative z-10">
-        <div className="w-full flex items-end justify-between px-8">
+      <div className="fixed bottom-0 left-0 right-0 p-6 relative z-10">
+        <div className="w-full flex items-end justify-between">
           {/* Bottom Left - Candidate Video */}
           <div className="candidate-video w-80 h-60 relative rounded-2xl overflow-hidden shadow-2xl ml-0">
             <video
