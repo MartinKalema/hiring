@@ -21,15 +21,6 @@ interface VoiceConfig {
   thinkProvider: string
 }
 
-// Decorative photos for the welcome screen
-const DECORATIVE_PHOTOS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
-]
 
 export default function DemoInterviewPage() {
   const [stage, setStage] = useState<InterviewStage>('welcome')
@@ -43,8 +34,6 @@ export default function DemoInterviewPage() {
   const [selectedCamera, setSelectedCamera] = useState<string>('')
   const [selectedMic, setSelectedMic] = useState<string>('')
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
-  const [transcript, setTranscript] = useState<Array<{ speaker: 'ai' | 'user', text: string, timestamp: number }>>([])
-  const [currentAgentText, setCurrentAgentText] = useState('')
   const [displayedText, setDisplayedText] = useState('')
   const [isRevealingText, setIsRevealingText] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
@@ -153,25 +142,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
     thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
     thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
-    onTranscript: (text, isFinal) => {
-      if (isFinal && text.trim()) {
-        setTranscript(prev => [...prev, { speaker: 'user', text, timestamp: elapsedTime }])
-      }
+    onTranscript: () => {
+      // Transcript handling removed for cleaner demo UI
     },
     onAgentUtterance: (text) => {
-      setCurrentAgentText(text)
       // Start word-by-word reveal
       startWordReveal(text)
-      if (text.trim()) {
-        setTranscript(prev => {
-          // Avoid duplicates
-          const lastEntry = prev[prev.length - 1]
-          if (lastEntry?.speaker === 'ai' && lastEntry?.text === text) {
-            return prev
-          }
-          return [...prev, { speaker: 'ai', text, timestamp: elapsedTime }]
-        })
-      }
     },
     onAgentStoppedSpeaking: () => {
       // Stop word reveal and show full text when agent stops
@@ -384,79 +360,63 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
   // Welcome Screen
   if (stage === 'welcome') {
     return (
-      <div className="interview-page min-h-screen pt-10">
-        <DemoBanner />
+      <div className="min-h-screen bg-white overflow-hidden relative">
+        {/* AIBOS Background decorative elements */}
+        <div className="absolute top-20 right-40 w-80 h-80 rounded-full bg-[#0066cc]/10 opacity-50 blur-3xl"></div>
+        <div className="absolute top-40 left-20 w-80 h-80 rounded-full bg-sky-100 opacity-40 blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-60 h-60 rounded-full bg-[#0099ff]/10 opacity-30 blur-3xl"></div>
+
+        {/* Grid pattern */}
+        <div
+          className="absolute top-0 left-0 w-full h-full"
+          style={{
+            backgroundImage: "radial-gradient(circle, #e0e7ff 1px, transparent 1px)",
+            backgroundSize: "30px 30px",
+            opacity: 0.3,
+          }}
+        ></div>
+
         {/* Header */}
-        <header className="interview-header sticky top-10 z-10 px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-              </svg>
-            </div>
-            <span className="font-semibold text-gray-900">AIR</span>
-            <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">Demo</span>
+        <header className="relative z-10 px-8 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Image src="/aibos-logo.png" alt="AIBOS" width={60} height={60} className="object-contain" />
+            <span className="ml-2 px-2.5 py-0.5 bg-blue-50 text-[#0066cc] text-xs rounded-full border border-[#0066cc]/20">Demo Mode</span>
           </div>
+          <a href="/" className="text-sm text-gray-600 hover:text-[#0066cc] transition-colors">
+            ← Back to Home
+          </a>
         </header>
 
-        <div className="flex min-h-[calc(100vh-120px)]">
-          {/* Left side - Decorative */}
-          <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden p-12">
-            <div className="relative w-full h-full">
-              <div className="absolute top-0 left-1/4 w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                <img src={DECORATIVE_PHOTOS[0]} alt="" className="w-full h-full object-cover" />
-              </div>
-
-              <div className="absolute top-16 left-4 bg-white rounded-2xl p-4 shadow-lg max-w-xs">
-                <p className="text-sm text-gray-700">
-                  Hi! Welcome to your interview with {interviewConfig.companyName}. I&apos;m AIR, the AI assistant who will be conducting the interview with you. Just relax and chat with me like you would in any regular conversation.
-                </p>
-              </div>
-
-              <div className="absolute top-1/3 right-8 w-36 h-36 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                <img src={DECORATIVE_PHOTOS[1]} alt="" className="w-full h-full object-cover" />
-              </div>
-
-              <div className="absolute top-1/2 left-8 w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                <img src={DECORATIVE_PHOTOS[2]} alt="" className="w-full h-full object-cover" />
-              </div>
-
-              <div className="absolute bottom-1/4 left-1/4 w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 shadow-lg flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-300/50 to-cyan-500/50 flex items-center justify-center">
-                  <div className="w-16 h-16 rounded-full bg-white/20" />
-                </div>
-              </div>
-
-              <div className="absolute bottom-1/4 right-1/4 w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                <img src={DECORATIVE_PHOTOS[3]} alt="" className="w-full h-full object-cover" />
-              </div>
-
-              <div className="absolute bottom-8 left-1/3 w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                <img src={DECORATIVE_PHOTOS[4]} alt="" className="w-full h-full object-cover" />
-              </div>
-            </div>
+        <div className="grid lg:grid-cols-2 min-h-[calc(100vh-100px)]">
+          {/* Left side - Full height decorative area */}
+          <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-[#0066cc]/5 to-blue-50/30">
+            {/* Background decorative elements */}
+            <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-[#0066cc]/5 opacity-60"></div>
+            <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-blue-100 opacity-40"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border-2 border-blue-100 opacity-30"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full border-2 border-blue-100 opacity-30"></div>
           </div>
 
           {/* Right side - Form */}
-          <div className="flex-1 flex items-center justify-center p-8 lg:p-12">
+          <div className="flex items-center justify-center p-8 lg:p-12 relative z-10">
             <div className="w-full max-w-md">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Welcome to your AI interview with {interviewConfig.companyName}
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
+                Welcome to your AI interview
               </h1>
 
-              <p className="text-gray-600 mb-8">
-                The interview will be conducted by AIR, our AI-powered interviewer. Your responses will be reviewed by the hiring team using criteria specific to the role to help ensure a fair and consistent evaluation.
+              <p className="text-gray-600 mb-8 text-sm">
+                Enter your details to begin. The interview will be conducted by our AI interviewer for the <strong>{interviewConfig.jobTitle}</strong> position.
               </p>
 
-              <form onSubmit={handleContinueToSetup} className="space-y-4">
+              <form onSubmit={handleContinueToSetup} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      First name<span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      First name<span className="text-[#0066cc]">*</span>
                     </label>
                     <input
                       type="text"
-                      className="input"
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
                       value={candidateInfo.firstName}
                       onChange={(e) => setCandidateInfo(prev => ({ ...prev, firstName: e.target.value }))}
                       placeholder="John"
@@ -464,12 +424,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Last name<span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Last name<span className="text-[#0066cc]">*</span>
                     </label>
                     <input
                       type="text"
-                      className="input"
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
                       value={candidateInfo.lastName}
                       onChange={(e) => setCandidateInfo(prev => ({ ...prev, lastName: e.target.value }))}
                       placeholder="Doe"
@@ -479,12 +439,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email<span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email<span className="text-[#0066cc]">*</span>
                   </label>
                   <input
                     type="email"
-                    className="input"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
                     value={candidateInfo.email}
                     onChange={(e) => setCandidateInfo(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="john@example.com"
@@ -492,27 +452,19 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
                   />
                 </div>
 
-                <div className="flex items-start gap-3 pt-2">
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    disabled={!candidateInfo.firstName || !candidateInfo.lastName || !candidateInfo.email}
-                  >
-                    Continue
-                  </button>
-                  <p className="text-xs text-gray-500 pt-2">
-                    By starting the interview, you agree to the collection and processing of your data as outlined in our{' '}
-                    <a href="#" className="privacy-link">Privacy Policy</a>.
-                  </p>
-                </div>
-              </form>
+                <button
+                  type="submit"
+                  className="w-full bg-[#0066cc] hover:bg-[#004c99] text-white px-6 py-3 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!candidateInfo.firstName || !candidateInfo.lastName || !candidateInfo.email}
+                >
+                  Continue to Setup
+                </button>
 
-              <button className="mt-8 flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium">
-                What to expect
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </button>
+                <p className="text-xs text-gray-500 text-center">
+                  By continuing, you agree to our{' '}
+                  <a href="#" className="text-[#0066cc] hover:underline">Privacy Policy</a>
+                </p>
+              </form>
             </div>
           </div>
         </div>
