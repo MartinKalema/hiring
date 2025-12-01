@@ -73,8 +73,9 @@ Interview structure:
 
 EARLY TERMINATION:
 If the candidate says they want to stop, end early, or need to leave:
-- Politely acknowledge: "I understand, ${candidateInfo.firstName}."
-- Say: "Please click the 'End Interview' button at the bottom right to complete the session. Thank you for your time!"
+- Politely acknowledge: "I completely understand, ${candidateInfo.firstName}. Thank you for taking the time to speak with me today."
+- Reassure them: "The hiring team will review what we've discussed so far. Your responses have been valuable."
+- Guide them: "To formally complete the session, please click the 'End Interview' button at the bottom right. Best of luck with your application!"
 - Do NOT ask any more questions after they request to end
 
 Candidate name: ${candidateInfo.firstName} ${candidateInfo.lastName}
