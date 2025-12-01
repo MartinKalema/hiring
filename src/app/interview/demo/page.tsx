@@ -236,7 +236,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
   const handleContinueToSetup = (e: React.FormEvent) => {
     e.preventDefault()
-    setStage('setup')
+    handleStartInterview()
   }
 
   const handleStartInterview = async () => {
@@ -478,8 +478,20 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
   // Setup Screen
   if (stage === 'setup') {
     return (
-      <div className="interview-page min-h-screen pt-10">
+      <div className="min-h-screen bg-white overflow-hidden relative pt-10">
         <DemoBanner />
+
+        {/* AIBOS Background */}
+        <div className="absolute top-20 right-40 w-80 h-80 rounded-full bg-[#0066cc]/10 opacity-50 blur-3xl"></div>
+        <div className="absolute top-40 left-20 w-80 h-80 rounded-full bg-sky-100 opacity-40 blur-3xl"></div>
+        <div
+          className="absolute top-0 left-0 w-full h-full"
+          style={{
+            backgroundImage: "radial-gradient(circle, #e0e7ff 1px, transparent 1px)",
+            backgroundSize: "30px 30px",
+            opacity: 0.3,
+          }}
+        ></div>
         <header className="interview-header sticky top-10 z-10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
