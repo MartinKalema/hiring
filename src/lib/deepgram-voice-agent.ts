@@ -205,7 +205,13 @@ export class DeepgramVoiceAgent {
               this.callbacks.onAudioPlaybackStart?.()
             } else if (data.type === 'AgentAudioDone') {
               this.setAgentState('listening')
-              this.callbacks.onAudioPlaybackEnd?.()
+              // Calculate how long until scheduled audio finishes playing
+              const currentTime = this.playbackAudioContext!.currentTime
+              const timeUntilDone = Math.max(0, (this.startTimeRef.current - currentTime) * 1000)
+              // Wait for audio to actually finish before calling callback
+              setTimeout(() => {
+                this.callbacks.onAudioPlaybackEnd?.()
+              }, timeUntilDone)
             } else if (data.type === 'ConversationText') {
               if (data.role === 'user') {
                 this.callbacks.onUserTranscript?.(data.content, true)
