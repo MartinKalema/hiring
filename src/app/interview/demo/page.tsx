@@ -746,9 +746,9 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
             </div>
           </div>
 
-          {/* Transcript text - closer to logo with smaller font */}
-          <div className="mt-6 max-w-3xl px-8">
-            <p className="text-sm md:text-base leading-relaxed text-gray-700 text-center">
+          {/* Transcript text - terminal style with wider width */}
+          <div className="mt-6 max-w-5xl px-4">
+            <p className="text-sm md:text-base leading-relaxed text-gray-800 text-center font-mono">
               {displayedText || 'Welcome to your interview...'}
               {isRevealingText && (
                 <span className="inline-block w-0.5 h-4 ml-1 bg-[#0066cc] animate-pulse align-middle" />

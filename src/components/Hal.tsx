@@ -171,14 +171,14 @@ const makeGradient = (
 };
 
 enum Color {
-  aibosDarkBlue = "#004c99cc",
-  aibosBlue = "#0066cccc",
-  aibosLightBlue = "#0099ffcc",
-  aibosSkyBlue = "#66b3ffcc",
-  gray = "#6b7280cc",
-  lightGray = "#9ca3afcc",
-  darkGray = "#374151cc",
-  black = "#1f2937cc",
+  aibosDarkBlue = "#004c9966",
+  aibosBlue = "#0066cc77",
+  aibosLightBlue = "#0099ff55",
+  aibosSkyBlue = "#66b3ff33",
+  gray = "#6b7280dd",
+  lightGray = "#9ca3afaa",
+  darkGray = "#374151ee",
+  black = "#000000ee",
   transparent = "transparent",
 }
 
