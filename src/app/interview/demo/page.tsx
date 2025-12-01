@@ -35,7 +35,6 @@ export default function DemoInterviewPage() {
   const [selectedMic, setSelectedMic] = useState<string>('')
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
   const [displayedText, setDisplayedText] = useState('')
-  const [isRevealingText, setIsRevealingText] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null)
@@ -44,11 +43,6 @@ export default function DemoInterviewPage() {
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const timeCheckpointsTriggered = useRef<Set<number>>(new Set())
-
-  // Refs for word-by-word text reveal
-  const targetTextRef = useRef('')
-  const wordIndexRef = useRef(0)
-  const wordRevealIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Demo interview configuration
   const interviewConfig = {
@@ -83,57 +77,6 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
   }, [candidateInfo.firstName, candidateInfo.lastName])
 
   // Word-by-word text reveal - shows text progressively as the agent speaks
-  const startWordReveal = useCallback((text: string) => {
-    // Clear any existing interval
-    if (wordRevealIntervalRef.current) {
-      clearInterval(wordRevealIntervalRef.current)
-    }
-
-    // Store the full text and reset index
-    targetTextRef.current = text
-    wordIndexRef.current = 0
-    setIsRevealingText(true)
-    setDisplayedText('')
-
-    // Split text into words
-    const words = text.split(/\s+/)
-    if (words.length === 0) {
-      setDisplayedText(text)
-      setIsRevealingText(false)
-      return
-    }
-
-    // Reveal words at ~240 words per minute (250ms per word)
-    const msPerWord = 250
-
-    wordRevealIntervalRef.current = setInterval(() => {
-      wordIndexRef.current++
-      const currentWords = words.slice(0, wordIndexRef.current)
-      setDisplayedText(currentWords.join(' '))
-
-      // Stop when all words are revealed
-      if (wordIndexRef.current >= words.length) {
-        if (wordRevealIntervalRef.current) {
-          clearInterval(wordRevealIntervalRef.current)
-          wordRevealIntervalRef.current = null
-        }
-        setIsRevealingText(false)
-      }
-    }, msPerWord)
-  }, [])
-
-  const stopWordReveal = useCallback(() => {
-    if (wordRevealIntervalRef.current) {
-      clearInterval(wordRevealIntervalRef.current)
-      wordRevealIntervalRef.current = null
-    }
-    // Show full text when stopping
-    if (targetTextRef.current) {
-      setDisplayedText(targetTextRef.current)
-    }
-    setIsRevealingText(false)
-  }, [])
-
   // Voice agent hook - connected to real Deepgram API
   const voiceAgent = useVoiceAgent({
     apiKey: voiceConfig?.apiKey || '',
@@ -142,22 +85,15 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
     thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
     thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
-    onTranscript: (text, isFinal) => {
-      // When user speaks (final transcript), clear the agent's text
-      if (isFinal && text.trim()) {
-        setDisplayedText('')
-      }
+    onTranscript: () => {
+      // Don't clear text when user speaks - keep agent text visible
     },
     onAgentUtterance: (text) => {
-      // Append new agent text to existing text
-      setDisplayedText(prev => {
-        const newText = prev ? prev + ' ' + text : text
-        return newText
-      })
+      // Clear previous text and show new agent utterance
+      setDisplayedText(text)
     },
     onAgentStoppedSpeaking: () => {
-      // Stop word reveal and show full text when agent stops
-      stopWordReveal()
+      // Do nothing - text stays visible with blinking cursor
     },
     onError: (error) => {
       console.error('Demo interview error:', error)
