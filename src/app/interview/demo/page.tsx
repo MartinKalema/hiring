@@ -402,11 +402,11 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
 
             <div className="w-full max-w-md">
               <h1 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
-                Welcome to your AI interview
+                Try a Live AI Interview
               </h1>
 
               <p className="text-gray-600 mb-8 text-sm">
-                Enter your details to begin. The interview will be conducted by our AI interviewer for the <strong>{interviewConfig.jobTitle}</strong> position.
+                Experience our AI interviewer in action for the <strong>{interviewConfig.jobTitle}</strong> position. Enter your details to begin the demo.
               </p>
 
               <form onSubmit={handleContinueToSetup} className="space-y-5">
