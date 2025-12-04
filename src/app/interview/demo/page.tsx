@@ -729,14 +729,22 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                       <label className="block text-xs font-medium text-gray-700 mb-1">
                         University<span className="text-aibos-blue">*</span>
                       </label>
-                      <input
-                        type="text"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                      <select
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundSize: '1.25rem'
+                        }}
                         value={candidateInfo.university}
                         onChange={(e) => setCandidateInfo(prev => ({ ...prev, university: e.target.value }))}
-                        placeholder="e.g., Makerere University"
                         required
-                      />
+                      >
+                        <option value="">Select university</option>
+                        <option value="University of Botswana">University of Botswana</option>
+                        <option value="Botswana International University of Science & Technology">Botswana International University of Science & Technology (BIUST)</option>
+                      </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -758,7 +766,13 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                           Year of study<span className="text-aibos-blue">*</span>
                         </label>
                         <select
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
                           value={candidateInfo.yearOfStudy}
                           onChange={(e) => setCandidateInfo(prev => ({ ...prev, yearOfStudy: e.target.value }))}
                           required
@@ -874,7 +888,13 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                         How did you hear about us?<span className="text-aibos-blue">*</span>
                       </label>
                       <select
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundSize: '1.25rem'
+                        }}
                         value={candidateInfo.howDidYouHear}
                         onChange={(e) => setCandidateInfo(prev => ({ ...prev, howDidYouHear: e.target.value }))}
                         required
@@ -895,7 +915,13 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                         How many days per week can you work?<span className="text-aibos-blue">*</span>
                       </label>
                       <select
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundSize: '1.25rem'
+                        }}
                         value={candidateInfo.daysPerWeek}
                         onChange={(e) => setCandidateInfo(prev => ({ ...prev, daysPerWeek: e.target.value }))}
                         required
