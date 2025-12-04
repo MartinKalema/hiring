@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     // Demo interview configuration
     const jobTitle = 'Junior Data Engineer'
     const companyName = 'AIBOS'
-    const maxDuration = 10
+    const maxDuration = 15
 
     const instructions = generateJuniorDataEngineerPrompt({
       candidateName: `${candidateFirstName} ${candidateLastName || ''}`.trim(),
@@ -72,7 +72,7 @@ These transitions should feel conversational, not robotic.`
 
     // Build greeting message - natural and professional
     // Write AIBOS phonetically as "Eye-Boss" so the TTS pronounces it correctly
-    const greeting = `Hello ${candidateFirstName}! My name is Lindsey, and I'm from the Eye-Boss HR team. Welcome to your ${jobTitle} interview. We have ${maxDuration} minutes together, and I'm excited to learn about your background and interest in data engineering. Before we begin, please make sure you're in a comfortable spot with minimal background noise. Ready to get started?`
+    const greeting = `Hello ${candidateFirstName}! My name is Lindsey, and I'm from the Eye-Boss HR team. Welcome to your ${jobTitle} interview. We have ${maxDuration} minutes together. The first 5 minutes will focus on getting to know you and your communication skills, then we'll dive into technical questions. Before we begin, please make sure you're in a comfortable spot with minimal background noise. Ready? Let's start with this - tell me about yourself.`
 
     return NextResponse.json({
       apiKey: deepgramApiKey,
