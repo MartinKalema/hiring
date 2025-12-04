@@ -57,8 +57,8 @@ export default function DemoInterviewPage() {
   // Demo interview configuration
   const interviewConfig = {
     jobTitle: 'Senior Software Engineer',
-    companyName: 'Demo Company',
-    maxDuration: 9,
+    companyName: 'AIBOS',
+    maxDuration: 10,
     language: 'English',
   }
 
@@ -79,6 +79,23 @@ Interview structure:
 3. Ask 2-3 behavioral questions about relevant competencies
 4. For each answer, probe deeper if needed
 5. Close with thanks
+
+STAYING ON TOPIC - CRITICAL:
+If the candidate goes off-topic, talks about unrelated subjects, or tries to have casual conversation not related to their qualifications:
+- Politely but firmly redirect them back to the interview
+- Say something like: "I appreciate that, but let's stay focused on the interview. Let me ask you about..."
+- Or: "That's interesting, but we have limited time. Let me bring us back to discussing your experience with..."
+- Do NOT engage in off-topic discussions
+- Do NOT answer questions unrelated to the job or company
+- Keep the conversation strictly professional and interview-focused
+
+Examples of OFF-TOPIC that require redirection:
+- Personal stories not related to work experience
+- Casual chitchat about weather, hobbies, news, etc.
+- Questions about you (the AI) or how the system works
+- Attempts to have a friendly conversation instead of answering interview questions
+
+Be strict but polite. This is a professional interview, not a casual chat.
 
 EARLY TERMINATION:
 If the candidate wants to end early:

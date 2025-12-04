@@ -9,8 +9,8 @@ export async function POST(request: NextRequest) {
 
     // Demo interview configuration
     const jobTitle = 'Junior Data Engineer'
-    const companyName = 'Demo Company'
-    const maxDuration = 9
+    const companyName = 'AIBOS'
+    const maxDuration = 10
 
     const instructions = generateJuniorDataEngineerPrompt({
       candidateName: `${candidateFirstName} ${candidateLastName || ''}`.trim(),
@@ -70,8 +70,9 @@ These transitions should feel conversational, not robotic.`
       return NextResponse.json({ error: 'Voice service not configured' }, { status: 503 })
     }
 
-    // Build greeting message - natural and professional, no "AIR" or "demo" mentions
-    const greeting = `Hello ${candidateFirstName}! Welcome to your ${jobTitle} interview with ${companyName}. We have ${maxDuration} minutes together, and I'm excited to learn about your background and interest in data engineering. Before we begin, please make sure you're in a comfortable spot with minimal background noise. Ready to get started?`
+    // Build greeting message - natural and professional
+    // Note: AIBOS should be pronounced as "AY-boss" (like saying the letters A-I followed by "boss")
+    const greeting = `Hello ${candidateFirstName}! Welcome to your ${jobTitle} interview with AIBOS. We have ${maxDuration} minutes together, and I'm excited to learn about your background and interest in data engineering. Before we begin, please make sure you're in a comfortable spot with minimal background noise. Ready to get started?`
 
     return NextResponse.json({
       apiKey: deepgramApiKey,
