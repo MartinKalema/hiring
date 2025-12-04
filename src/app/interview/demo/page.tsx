@@ -16,12 +16,123 @@ interface CandidateInfo {
   academicTranscripts: File | null
   githubProfile: string
   university: string
+  faculty: string
+  department: string
   course: string
   yearOfStudy: string
   howDidYouHear: string
   gpa: string
   daysPerWeek: string
 }
+
+// University of Botswana faculties and departments
+const UB_FACULTIES = [
+  {
+    name: 'Faculty of Business',
+    departments: [
+      'Department of Accounting and Finance',
+      'Department of Management',
+      'Department of Marketing',
+      'Department of Tourism and Hospitality Management',
+      'Graduate School of Business'
+    ]
+  },
+  {
+    name: 'Faculty of Education',
+    departments: [
+      'Department of Educational Foundations',
+      'Department of Educational Technology',
+      'Department of Family and Consumer Sciences',
+      'Department of Languages and Social Sciences Education',
+      'Department of Lifelong Learning and Community Development',
+      'Department of Mathematics and Science Education',
+      'Department of Primary Education',
+      'Department of Sports Science'
+    ]
+  },
+  {
+    name: 'Faculty of Engineering and Technology',
+    departments: [
+      'Department of Architecture and Planning',
+      'Department of Civil Engineering',
+      'Department of Electrical Engineering',
+      'Department of Industrial Design and Technology',
+      'Department of Mechanical Engineering'
+    ]
+  },
+  {
+    name: 'Faculty of Health Sciences',
+    departments: [
+      'School of Allied Health Professions',
+      'School of Nursing',
+      'School of Pharmacy',
+      'School of Public Health'
+    ]
+  },
+  {
+    name: 'Faculty of Humanities',
+    departments: [
+      'Department of African Languages and Literature',
+      'Department of Chinese Studies',
+      'Department of English',
+      'Department of French',
+      'Department of History',
+      'Department of Library and Information Studies',
+      'Department of Media Studies',
+      'Department of Portuguese Studies',
+      'Department of Theology and Religious Studies',
+      'Department of Visual and Performing Arts'
+    ]
+  },
+  {
+    name: 'Faculty of Medicine',
+    departments: [
+      'Department of Anaesthesia and Critical Care Medicine',
+      'Department of Biomedical Sciences',
+      'Department of Emergency Medicine',
+      'Department of Family Medicine & Public Health',
+      'Department of Internal Medicine',
+      'Department of Medical Education',
+      'Department of Obstetrics and Gynaecology',
+      'Department of Paediatrics and Adolescent Health',
+      'Department of Pathology',
+      'Department of Psychiatry',
+      'Department of Radiology',
+      'Department of Surgery'
+    ]
+  },
+  {
+    name: 'Faculty of Science',
+    departments: [
+      'Department of Biological Sciences',
+      'Department of Chemistry',
+      'Department of Computer Science',
+      'Department of Environmental Science',
+      'Department of Geology',
+      'Department of Mathematics',
+      'Department of Physics'
+    ]
+  },
+  {
+    name: 'Faculty of Social Sciences',
+    departments: [
+      'Department of Economics',
+      'Department of Law',
+      'Department of Political and Administrative Studies',
+      'Department of Population Studies',
+      'Department of Psychology',
+      'Department of Social Work',
+      'Department of Sociology',
+      'Department of Statistics'
+    ]
+  },
+  {
+    name: 'Research Institutes',
+    departments: [
+      'Okavango Research Institute (ORI)'
+    ]
+  }
+]
 
 interface VoiceConfig {
   apiKey: string
@@ -46,6 +157,8 @@ export default function DemoInterviewPage() {
     academicTranscripts: null,
     githubProfile: '',
     university: '',
+    faculty: '',
+    department: '',
     course: '',
     yearOfStudy: '',
     howDidYouHear: '',
@@ -738,7 +851,15 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                           backgroundSize: '1.25rem'
                         }}
                         value={candidateInfo.university}
-                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, university: e.target.value }))}
+                        onChange={(e) => {
+                          setCandidateInfo(prev => ({
+                            ...prev,
+                            university: e.target.value,
+                            faculty: '',
+                            department: '',
+                            course: ''
+                          }))
+                        }}
                         required
                       >
                         <option value="">Select university</option>
@@ -747,7 +868,78 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Faculty dropdown - only for UB */}
+                    {candidateInfo.university === 'University of Botswana' && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Faculty<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.faculty}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              faculty: e.target.value,
+                              department: '',
+                              course: ''
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select faculty</option>
+                          {UB_FACULTIES.map((faculty) => (
+                            <option key={faculty.name} value={faculty.name}>
+                              {faculty.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Department dropdown - only for UB and when faculty is selected */}
+                    {candidateInfo.university === 'University of Botswana' && candidateInfo.faculty && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Department<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.department}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              department: e.target.value
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select department</option>
+                          {UB_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.map((dept) => (
+                              <option key={dept} value={dept}>
+                                {dept}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Course field - only for BIUST */}
+                    {candidateInfo.university === 'Botswana International University of Science & Technology' && (
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           Course<span className="text-aibos-blue">*</span>
@@ -757,10 +949,14 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                           className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
                           value={candidateInfo.course}
                           onChange={(e) => setCandidateInfo(prev => ({ ...prev, course: e.target.value }))}
-                          placeholder="Computer Science"
+                          placeholder="e.g., Computer Science"
                           required
                         />
                       </div>
+                    )}
+
+                    {/* Year of study - for all universities */}
+                    {candidateInfo.university && (
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           Year of study<span className="text-aibos-blue">*</span>
@@ -786,7 +982,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                           <option value="graduated">Graduated</option>
                         </select>
                       </div>
-                    </div>
+                    )}
 
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">
