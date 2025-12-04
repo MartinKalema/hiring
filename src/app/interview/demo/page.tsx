@@ -101,8 +101,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     instructions: voiceConfig?.instructions || buildInstructions(),
     voice: voiceConfig?.voice || 'aura-asteria-en',
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
-    thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
-    thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
+    thinkProvider: voiceConfig?.thinkProvider || 'open_ai',
+    thinkModel: voiceConfig?.thinkModel || 'gpt-4o',
     onTranscript: () => {
       // Don't clear text when user speaks - keep agent text visible
     },
