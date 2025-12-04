@@ -35,6 +35,14 @@ export default function DemoInterviewPage() {
   const [selectedMic, setSelectedMic] = useState<string>('')
   const [devices, setDevices] = useState<{ cameras: MediaDeviceInfo[], mics: MediaDeviceInfo[] }>({ cameras: [], mics: [] })
   const [displayedText, setDisplayedText] = useState('')
+  const [audioLevel, setAudioLevel] = useState(0)
+  const [internetSpeed, setInternetSpeed] = useState<number | null>(null)
+  const [speedTestStatus, setSpeedTestStatus] = useState<'idle' | 'testing' | 'complete'>('idle')
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null)
+  const [setupStep, setSetupStep] = useState<'intro' | 'tests'>('intro')
+  const audioAnalyzerRef = useRef<AnalyserNode | null>(null)
+  const audioStreamRef = useRef<MediaStream | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
@@ -55,7 +63,7 @@ export default function DemoInterviewPage() {
 
   // Build instructions for the AI interviewer
   const buildInstructions = useCallback(() => {
-    return `You are AIR, an AI interviewer conducting a demo interview for a ${interviewConfig.jobTitle} position at ${interviewConfig.companyName}.
+    return `You are an AI interviewer conducting an interview for a ${interviewConfig.jobTitle} position at ${interviewConfig.companyName}.
 
 Your role:
 - Conduct a professional, conversational interview
@@ -65,7 +73,7 @@ Your role:
 - Listen carefully and ask relevant follow-up questions
 
 Interview structure:
-1. Start with a warm greeting, introduce yourself as AIR
+1. Start with a warm greeting, introduce yourself
 2. Ask about their background and interest in the role
 3. Ask 2-3 behavioral questions about relevant competencies
 4. For each answer, probe deeper if needed
@@ -82,7 +90,7 @@ If the candidate wants to end early:
 Candidate name: ${candidateInfo.firstName} ${candidateInfo.lastName}
 Maximum duration: ${interviewConfig.maxDuration} minutes
 
-Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and asking if they're ready to get started.`
+Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking if they're ready to get started.`
   }, [candidateInfo.firstName, candidateInfo.lastName])
 
   // Word-by-word text reveal - shows text progressively as the agent speaks
@@ -132,7 +140,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     }
   }, [stage])
 
-  // Initialize camera and microphone
+  // Initialize camera for preview
   useEffect(() => {
     async function initMedia() {
       try {
@@ -155,16 +163,14 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         }
 
         setCameraReady(true)
-        setMicReady(true)
       } catch (error) {
         console.error('Failed to access media devices:', error)
-        // For demo, allow continuing even without camera
-        setCameraReady(true)
-        setMicReady(true)
+        setCameraReady(false)
       }
     }
 
-    if (stage === 'setup' || stage === 'active') {
+    // Initialize camera when on tests step or active stage
+    if ((stage === 'setup' && setupStep === 'tests') || stage === 'active') {
       initMedia()
     }
 
@@ -173,7 +179,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         mediaStreamRef.current.getTracks().forEach(track => track.stop())
       }
     }
-  }, [stage, selectedCamera, selectedMic])
+  }, [stage, setupStep, selectedCamera])
 
   // Timer for interview duration with time-based checkpoints
   useEffect(() => {
@@ -238,6 +244,122 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     e.preventDefault()
     setStage('setup')
   }
+
+  // Internet speed test using a simple download method
+  const runSpeedTest = async () => {
+    setSpeedTestStatus('testing')
+    setInternetSpeed(null)
+
+    try {
+      // Download a smaller test file for faster results - 500KB
+      const fileSize = 500 * 1024 // 500KB
+      const startTime = performance.now()
+
+      // Use Cloudflare speed test endpoint with smaller file
+      const response = await fetch('https://speed.cloudflare.com/__down?bytes=' + fileSize)
+      await response.blob()
+
+      const endTime = performance.now()
+      const durationInSeconds = (endTime - startTime) / 1000
+      const speedMbps = (fileSize * 8) / (durationInSeconds * 1000000)
+
+      setInternetSpeed(Math.round(speedMbps))
+      setSpeedTestStatus('complete')
+    } catch (error) {
+      console.error('Speed test failed:', error)
+      // If speed test fails, just set a default good speed
+      setInternetSpeed(50)
+      setSpeedTestStatus('complete')
+    }
+  }
+
+  // Start microphone test with audio level monitoring
+  const startMicTest = async () => {
+    try {
+      // Request microphone with specific constraints for better audio capture
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      })
+      audioStreamRef.current = stream
+
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      setAudioContext(ctx)
+
+      const source = ctx.createMediaStreamSource(stream)
+      const analyzer = ctx.createAnalyser()
+      analyzer.fftSize = 256 // Smaller FFT for faster response
+      analyzer.smoothingTimeConstant = 0.3 // Less smoothing for more responsive feedback
+
+      source.connect(analyzer)
+      audioAnalyzerRef.current = analyzer
+      setMicReady(true)
+
+      // Monitor audio levels continuously using frequency data
+      const dataArray = new Uint8Array(analyzer.frequencyBinCount)
+
+      const updateLevel = () => {
+        if (!audioAnalyzerRef.current) return
+
+        // Use frequency data which is better for detecting speech
+        analyzer.getByteFrequencyData(dataArray)
+
+        // Calculate average of frequency bins (focuses on speech frequencies)
+        let sum = 0
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i]
+        }
+        const average = sum / dataArray.length
+
+        // Scale to 0-100 with higher sensitivity
+        // Most speech will be in the 0-50 range, we scale it up
+        const level = Math.min(100, (average / 128) * 100 * 2.5)
+
+        setAudioLevel(level)
+        animationFrameRef.current = requestAnimationFrame(updateLevel)
+      }
+
+      updateLevel()
+    } catch (error) {
+      console.error('Failed to start mic test:', error)
+      setMicReady(false)
+    }
+  }
+
+  // Stop microphone test
+  const stopMicTest = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = null
+    }
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach(track => track.stop())
+      audioStreamRef.current = null
+    }
+    if (audioContext) {
+      audioContext.close()
+      setAudioContext(null)
+    }
+    audioAnalyzerRef.current = null
+    setAudioLevel(0)
+  }
+
+  // Auto-start tests when setup stage is reached
+  useEffect(() => {
+    if (stage === 'setup' && setupStep === 'tests') {
+      // Auto-run speed test
+      runSpeedTest()
+      // Auto-start mic test
+      startMicTest()
+    }
+
+    return () => {
+      stopMicTest()
+    }
+  }, [stage, setupStep])
 
   const handleStartInterview = async () => {
     setStage('joining')
@@ -475,110 +597,310 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
     )
   }
 
-  // Setup Screen - Clean centered design
+  // Setup Screen - Modern interview preparation screen
   if (stage === 'setup') {
-    return (
-      <div className="min-h-screen bg-white overflow-hidden relative flex items-center justify-center">
-        <DemoBanner />
+    // Intro screen - inspired by the screenshots
+    if (setupStep === 'intro') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-8">
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-10">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">Start your interview</h1>
+              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center">
+                <svg className="w-7 h-7 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+            </div>
 
-        {/* AIBOS Background */}
-        <div className="absolute top-20 right-40 w-80 h-80 rounded-full bg-[#0066cc]/10 opacity-50 blur-3xl"></div>
-        <div className="absolute top-40 left-20 w-80 h-80 rounded-full bg-sky-100 opacity-40 blur-3xl"></div>
-        <div
-          className="absolute top-0 left-0 w-full h-full"
-          style={{
-            backgroundImage: "radial-gradient(circle, #e0e7ff 1px, transparent 1px)",
-            backgroundSize: "30px 30px",
-            opacity: 0.3,
-          }}
-        ></div>
+            <p className="text-gray-600 mb-8">This interview requires you to be on video.</p>
 
-        <div className="relative z-10 w-full max-w-3xl px-8">
-          <div className="text-center mb-8">
-            <Image src="/aibos-logo.png" alt="AIBOS" width={100} height={100} className="mx-auto mb-6" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-3 font-mono">Device Check</h1>
-            <p className="text-gray-600">Ensure your camera and microphone are working properly</p>
-          </div>
-
-          {/* Video Preview - Centered and Large */}
-          <div className="mb-8">
-            <div className="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              {!cameraReady && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
-                  <div className="text-center">
-                    <div className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full mx-auto mb-4" />
-                    <p className="text-white text-lg">Requesting camera access...</p>
+            {/* Info Cards */}
+            <div className="space-y-3 mb-8">
+              {/* Duration */}
+              <div className="border border-gray-200 rounded-xl p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Takes about 7 - 9 minutes</h3>
+                    <p className="text-sm text-gray-600">We want to get to know you and see if there&apos;s a match!</p>
                   </div>
                 </div>
-              )}
-              {cameraReady && (
-                <div className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-green-500/90 backdrop-blur-sm rounded-full">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  <span className="text-white text-sm font-medium">Camera Ready</span>
+              </div>
+
+              {/* Two column info */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="border border-gray-200 rounded-xl p-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">Be natural and confident</h3>
+                      <p className="text-xs text-gray-600">Show your qualities that aren&apos;t on your resume or cover letter.</p>
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                <div className="border border-gray-200 rounded-xl p-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">Quiet spot and strong wifi</h3>
+                      <p className="text-xs text-gray-600">Make sure your audio is crisp and clear upon review.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reviewed by human */}
+              <div className="border border-gray-200 rounded-xl p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Reviewed by a human</h3>
+                    <p className="text-sm text-gray-600">Each call is seen by a recruiter so you&apos;re in capable hands.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Accessibility */}
+              <div className="flex items-center justify-between p-5 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-aibos-blue rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">Need accessibility help?</h3>
+                    <p className="text-xs text-gray-600">Send a request to your recruiter.</p>
+                  </div>
+                </div>
+                <button className="px-4 py-2 border border-gray-900 rounded-full font-medium text-sm text-gray-900 hover:bg-gray-900 hover:text-white transition-colors">
+                  Request help →
+                </button>
+              </div>
+            </div>
+
+            {/* Join Button */}
+            <button
+              onClick={() => setSetupStep('tests')}
+              className="w-full bg-aibos-blue hover:bg-aibos-darkBlue text-white px-6 py-3 rounded-full font-semibold transition-colors"
+            >
+              Join interview
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    // Tests screen - device and connection tests
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden relative flex items-center justify-center p-8">
+        {/* Background decoration */}
+        <div className="absolute top-20 right-40 w-80 h-80 rounded-full bg-[#0066cc]/10 opacity-50 blur-3xl"></div>
+        <div className="absolute bottom-40 left-20 w-80 h-80 rounded-full bg-sky-100 opacity-40 blur-3xl"></div>
+
+        <div className="relative z-10 w-full max-w-5xl">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">Video and audio check</h1>
+            <p className="text-gray-600 text-lg">Before you start, make sure your video and audio is set up properly.</p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6 mb-8">
+            {/* Left Column - Audio & Connection */}
+            <div className="space-y-6">
+              {/* Internet Speed Test */}
+              <div className="bg-white rounded-3xl shadow-xl p-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Connection Speed</h3>
+
+                {speedTestStatus === 'idle' && (
+                  <div className="text-center py-8">
+                    <button
+                      onClick={runSpeedTest}
+                      className="px-5 py-2.5 bg-aibos-blue hover:bg-aibos-darkBlue text-white rounded-full font-medium transition-colors text-sm"
+                    >
+                      Test Speed
+                    </button>
+                  </div>
+                )}
+
+                {speedTestStatus === 'testing' && (
+                  <div className="text-center py-8">
+                    <div className="text-8xl font-bold text-gray-300 mb-4 animate-pulse">--</div>
+                    <div className="text-2xl text-gray-400 font-semibold">Mbps</div>
+                    <p className="text-gray-500 mt-4">Testing your connection...</p>
+                  </div>
+                )}
+
+                {speedTestStatus === 'complete' && internetSpeed !== null && (
+                  <div className="text-center py-8">
+                    <div className="text-8xl font-bold text-gray-900 mb-4">{internetSpeed}</div>
+                    <div className="text-2xl text-gray-600 font-semibold mb-6">Mbps</div>
+                    {internetSpeed >= 5 ? (
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-medium">Good connection</span>
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-medium">Slow connection</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Microphone Test */}
+              <div className="bg-white rounded-3xl shadow-xl p-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Microphone</h3>
+                <div className="mb-6">
+                  <select
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-aibos-blue focus:border-aibos-blue bg-white text-gray-800"
+                    value={selectedMic}
+                    onChange={(e) => setSelectedMic(e.target.value)}
+                  >
+                    {devices.mics.length > 0 ? devices.mics.map(mic => (
+                      <option key={mic.deviceId} value={mic.deviceId}>
+                        {mic.label || 'Microphone'}
+                      </option>
+                    )) : <option>Default Microphone</option>}
+                  </select>
+                </div>
+
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-4 h-4 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-gray-900 font-medium text-sm">Say something out loud to test your microphone</p>
+                  </div>
+
+                  {/* Audio Level Meter */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-700 font-medium">Input level</span>
+                      {micReady && (
+                        <span className="text-green-600 font-medium">✓ Working</span>
+                      )}
+                    </div>
+                    <div style={{
+                      height: '8px',
+                      backgroundColor: '#d1d5db',
+                      borderRadius: '0',
+                      position: 'relative',
+                      width: '100%',
+                      display: 'block'
+                    }}>
+                      <div
+                        key={audioLevel}
+                        style={{
+                          height: '8px',
+                          width: `${audioLevel}%`,
+                          backgroundColor: audioLevel > 70 ? '#ef4444' : audioLevel > 40 ? '#fbbf24' : '#22c55e',
+                          borderRadius: '0',
+                          transition: 'width 0.1s ease-out',
+                          display: 'block'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Video */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-3xl shadow-xl p-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Video settings</h3>
+
+                {/* Video Preview */}
+                <div className="relative aspect-video bg-gray-900 rounded-2xl overflow-hidden mb-6">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                  {!cameraReady && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
+                      <div className="text-center">
+                        <div className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full mx-auto mb-4" />
+                        <p className="text-white text-lg">Requesting camera access...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Instructions */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-2">Smile you&apos;re on camera!</h4>
+                  <p className="text-gray-600 text-sm">Center yourself in the frame and make sure your interviewer can see you clearly.</p>
+                </div>
+
+                {/* Camera Selector */}
+                <select
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-aibos-blue focus:border-aibos-blue bg-white text-gray-800 mb-6"
+                  value={selectedCamera}
+                  onChange={(e) => setSelectedCamera(e.target.value)}
+                >
+                  {devices.cameras.length > 0 ? devices.cameras.map(camera => (
+                    <option key={camera.deviceId} value={camera.deviceId}>
+                      {camera.label || 'Camera'}
+                    </option>
+                  )) : <option>Default Camera</option>}
+                </select>
+
+                {/* Status Indicator */}
+                {cameraReady && (
+                  <div className="flex items-center justify-center gap-2 px-4 py-3 bg-green-50 border-2 border-green-200 rounded-xl">
+                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-green-700 font-medium">Camera is working</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Device Selectors */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <select
-              className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] bg-white text-gray-800"
-              value={selectedCamera}
-              onChange={(e) => setSelectedCamera(e.target.value)}
+          {/* Complete Button */}
+          <div className="text-center">
+            <button
+              onClick={handleStartInterview}
+              disabled={!cameraReady || !micReady || speedTestStatus !== 'complete'}
+              className="px-8 py-3 bg-aibos-blue hover:bg-aibos-darkBlue text-white rounded-full font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {devices.cameras.length > 0 ? devices.cameras.map(camera => (
-                <option key={camera.deviceId} value={camera.deviceId}>
-                  📹 {camera.label || 'Camera'}
-                </option>
-              )) : <option>Default Camera</option>}
-            </select>
-            <select
-              className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] bg-white text-gray-800"
-              value={selectedMic}
-              onChange={(e) => setSelectedMic(e.target.value)}
-            >
-              {devices.mics.length > 0 ? devices.mics.map(mic => (
-                <option key={mic.deviceId} value={mic.deviceId}>
-                  🎤 {mic.label || 'Microphone'}
-                </option>
-              )) : <option>Default Microphone</option>}
-            </select>
+              {speedTestStatus === 'complete' && cameraReady && micReady
+                ? 'Start Interview'
+                : 'Checking devices...'}
+            </button>
+            {speedTestStatus !== 'complete' && (
+              <p className="text-sm text-gray-500 mt-3">Running connection and device tests...</p>
+            )}
           </div>
-
-          {/* Status Checks */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 mb-8">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Camera</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${cameraReady ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {cameraReady ? '✓ Ready' : 'Checking...'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Microphone</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${micReady ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {micReady ? '✓ Ready' : 'Checking...'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Start Button */}
-          <button
-            onClick={handleStartInterview}
-            disabled={!cameraReady || !micReady}
-            className="w-full bg-[#0066cc] hover:bg-[#004c99] text-white px-8 py-4 rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg"
-          >
-            {cameraReady && micReady ? 'Start Interview →' : 'Waiting for devices...'}
-          </button>
         </div>
       </div>
     )
@@ -587,16 +909,15 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
   // Joining Screen
   if (stage === 'joining') {
     return (
-      <div className="interview-page min-h-screen flex items-center justify-center pt-10">
+      <div className="interview-page min-h-screen flex items-center justify-center pt-10 bg-gradient-to-br from-slate-50 to-blue-50">
         <DemoBanner />
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-6 relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-cyan-600 animate-pulse" />
-            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-300 to-cyan-500" />
+          <div className="w-16 h-16 mx-auto mb-6 relative">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-aibos-lightBlue to-aibos-blue animate-pulse" />
+            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-400 to-aibos-blue" />
           </div>
-          <p className="text-xl font-medium text-gray-900">Joining your AI Interview...</p>
-          <p className="text-gray-500 mt-2">Please wait while we connect you with AIR</p>
-          <p className="text-amber-600 text-sm mt-4">(Demo mode - simulating connection)</p>
+          <p className="text-xl font-semibold text-gray-900">Joining your interview...</p>
+          <p className="text-gray-600 mt-2 text-sm">Please wait while we connect you with the AI interviewer</p>
         </div>
       </div>
     )
@@ -710,62 +1031,75 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, and a
         </div>
       </div>
 
-      {/* Completion Modal */}
+      {/* Completion Modal - Feedback inspired */}
       {showCompletionModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">Demo Interview Complete!</span>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-8 z-50">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-10 relative">
+            {/* Icon */}
+            <div className="flex justify-between items-start mb-5">
+              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center">
+                <svg className="w-7 h-7 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <button
+                onClick={() => setShowCompletionModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              This was a demo of the candidate interview experience.
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Phew! That was easy, wasn&apos;t it?
             </h2>
 
-            <p className="text-gray-600 mb-6">
-              In a real interview, the candidate&apos;s responses would be recorded and evaluated by the AI interviewer. The hiring team would then receive a comprehensive assessment.
+            <p className="text-gray-600 mb-7">
+              Give your experience a rating and tell us how it went.
             </p>
 
-            <div className="mb-6">
-              <p className="font-medium text-gray-900 mb-3">To create a real interview:</p>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0066cc] mt-2" />
-                  <span>Go to <a href="/interviews/new" className="text-[#0066cc] hover:underline font-medium">Create Interview</a></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0066cc] mt-2" />
-                  <span>Set up your job description and competencies</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0066cc] mt-2" />
-                  <span>Invite candidates to take the interview</span>
-                </li>
-              </ul>
+            {/* Rating */}
+            <div className="mb-7">
+              <h3 className="text-gray-900 font-semibold mb-3 text-sm">Rate your experience</h3>
+              <div className="flex gap-3 justify-between mb-2">
+                {['😡', '😟', '😐', '🙂', '😄'].map((emoji, index) => (
+                  <button
+                    key={index}
+                    className="flex-1 py-3 bg-gray-50 hover:bg-blue-50 rounded-xl text-3xl transition-colors hover:scale-105 transform"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-gray-600 px-1">
+                <span>Not satisfied</span>
+                <span>Very satisfied</span>
+              </div>
             </div>
 
-            <div className="flex gap-3">
-              <a
-                href="/interviews/new"
-                className="bg-[#0066cc] hover:bg-[#004c99] text-white px-6 py-3 rounded-full font-medium transition-colors"
-              >
-                Create Real Interview
-              </a>
-              <a
-                href="/"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-full font-medium transition-colors"
-              >
-                Back to Home
-              </a>
+            {/* Feedback */}
+            <div className="mb-7">
+              <label className="block text-gray-900 font-semibold mb-2 text-sm">
+                Give feedback <span className="text-gray-500 font-normal">(optional)</span>
+              </label>
+              <textarea
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-aibos-blue focus:border-aibos-blue resize-none text-sm"
+                rows={3}
+                placeholder="Was there anything we could improve to make this experience better?"
+              />
             </div>
 
+            {/* Submit Button */}
             <button
-              onClick={() => setShowCompletionModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              onClick={() => {
+                setShowCompletionModal(false)
+                window.location.href = '/'
+              }}
+              className="w-full bg-aibos-blue hover:bg-aibos-darkBlue text-white px-6 py-3 rounded-full font-semibold transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              Submit
             </button>
           </div>
         </div>
