@@ -10,6 +10,17 @@ interface CandidateInfo {
   firstName: string
   lastName: string
   email: string
+  phone: string
+  profilePicture: File | null
+  resume: File | null
+  academicTranscripts: File | null
+  githubProfile: string
+  university: string
+  course: string
+  yearOfStudy: string
+  howDidYouHear: string
+  gpa: string
+  daysPerWeek: string
 }
 
 interface VoiceConfig {
@@ -24,10 +35,22 @@ interface VoiceConfig {
 
 export default function DemoInterviewPage() {
   const [stage, setStage] = useState<InterviewStage>('welcome')
+  const [formStep, setFormStep] = useState<1 | 2>(1)
   const [candidateInfo, setCandidateInfo] = useState<CandidateInfo>({
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
+    profilePicture: null,
+    resume: null,
+    academicTranscripts: null,
+    githubProfile: '',
+    university: '',
+    course: '',
+    yearOfStudy: '',
+    howDidYouHear: '',
+    gpa: '',
+    daysPerWeek: '',
   })
   const [cameraReady, setCameraReady] = useState(false)
   const [micReady, setMicReady] = useState(false)
@@ -632,61 +655,273 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                 Experience our AI interviewer in action for the <strong>{interviewConfig.jobTitle}</strong> position. Enter your details to begin the demo.
               </p>
 
-              <form onSubmit={handleContinueToSetup} className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First name<span className="text-[#0066cc]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
-                      value={candidateInfo.firstName}
-                      onChange={(e) => setCandidateInfo(prev => ({ ...prev, firstName: e.target.value }))}
-                      placeholder="John"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last name<span className="text-[#0066cc]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
-                      value={candidateInfo.lastName}
-                      onChange={(e) => setCandidateInfo(prev => ({ ...prev, lastName: e.target.value }))}
-                      placeholder="Doe"
-                      required
-                    />
-                  </div>
-                </div>
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                if (formStep === 1) {
+                  setFormStep(2)
+                } else {
+                  handleContinueToSetup(e)
+                }
+              }} className="space-y-4">
+                {formStep === 1 && (
+                  <>
+                    {/* Step 1: Basic Information */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          First name<span className="text-aibos-blue">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                          value={candidateInfo.firstName}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, firstName: e.target.value }))}
+                          placeholder="John"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Last name<span className="text-aibos-blue">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                          value={candidateInfo.lastName}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, lastName: e.target.value }))}
+                          placeholder="Doe"
+                          required
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email<span className="text-[#0066cc]">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
-                    value={candidateInfo.email}
-                    onChange={(e) => setCandidateInfo(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="john@example.com"
-                    required
-                  />
-                </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Email<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.email}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="john@example.com"
+                        required
+                      />
+                    </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-[#0066cc] hover:bg-[#004c99] text-white px-6 py-3 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!candidateInfo.firstName || !candidateInfo.lastName || !candidateInfo.email}
-                >
-                  Start Interview
-                </button>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Phone number<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.phone}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="+1 234 567 8900"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        University<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.university}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, university: e.target.value }))}
+                        placeholder="e.g., Makerere University"
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Course<span className="text-aibos-blue">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                          value={candidateInfo.course}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, course: e.target.value }))}
+                          placeholder="Computer Science"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Year of study<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                          value={candidateInfo.yearOfStudy}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, yearOfStudy: e.target.value }))}
+                          required
+                        >
+                          <option value="">Select year</option>
+                          <option value="1">Year 1</option>
+                          <option value="2">Year 2</option>
+                          <option value="3">Year 3</option>
+                          <option value="4">Year 4</option>
+                          <option value="5">Year 5+</option>
+                          <option value="graduated">Graduated</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        GPA<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.gpa}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, gpa: e.target.value }))}
+                        placeholder="e.g., 3.5/4.0"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-aibos-blue hover:bg-aibos-darkBlue text-white px-6 py-3 rounded-full font-medium transition-colors"
+                    >
+                      Continue
+                    </button>
+                  </>
+                )}
+
+                {formStep === 2 && (
+                  <>
+                    {/* Step 2: Documents and Additional Info */}
+                    <div className="mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setFormStep(1)}
+                        className="text-xs text-aibos-blue hover:underline flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Back
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Profile picture<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-aibos-blue/10 file:text-aibos-blue hover:file:bg-aibos-blue/20"
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, profilePicture: e.target.files?.[0] || null }))}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Upload a professional photo</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Resume/CV<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-aibos-blue/10 file:text-aibos-blue hover:file:bg-aibos-blue/20"
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, resume: e.target.files?.[0] || null }))}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">PDF, DOC, or DOCX format</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Academic transcripts<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-aibos-blue/10 file:text-aibos-blue hover:file:bg-aibos-blue/20"
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, academicTranscripts: e.target.files?.[0] || null }))}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">PDF format only</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        GitHub profile<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="url"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.githubProfile}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, githubProfile: e.target.value }))}
+                        placeholder="https://github.com/johndoe"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        How did you hear about us?<span className="text-aibos-blue">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.howDidYouHear}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, howDidYouHear: e.target.value }))}
+                        required
+                      >
+                        <option value="">Select an option</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="job-board">Job Board</option>
+                        <option value="referral">Referral</option>
+                        <option value="university">University Career Center</option>
+                        <option value="social-media">Social Media</option>
+                        <option value="company-website">Company Website</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        How many days per week can you work?<span className="text-aibos-blue">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.daysPerWeek}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, daysPerWeek: e.target.value }))}
+                        required
+                      >
+                        <option value="">Select days</option>
+                        <option value="1">1 day</option>
+                        <option value="2">2 days</option>
+                        <option value="3">3 days</option>
+                        <option value="4">4 days</option>
+                        <option value="5">5 days (Full-time)</option>
+                        <option value="6">6 days</option>
+                        <option value="7">7 days</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-aibos-blue hover:bg-aibos-darkBlue text-white px-6 py-3 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!candidateInfo.profilePicture || !candidateInfo.resume || !candidateInfo.academicTranscripts || !candidateInfo.githubProfile || !candidateInfo.howDidYouHear || !candidateInfo.daysPerWeek}
+                    >
+                      Start Interview
+                    </button>
+                  </>
+                )}
 
                 <p className="text-xs text-gray-500 text-center">
                   By continuing, you agree to our{' '}
-                  <a href="#" className="text-[#0066cc] hover:underline">Privacy Policy</a>
+                  <a href="#" className="text-aibos-blue hover:underline">Privacy Policy</a>
                 </p>
               </form>
             </div>
