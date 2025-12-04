@@ -25,111 +25,351 @@ interface CandidateInfo {
   daysPerWeek: string
 }
 
-// University of Botswana faculties and departments
+// University of Botswana faculties, departments, and courses
 const UB_FACULTIES = [
   {
     name: 'Faculty of Business',
     departments: [
-      'Department of Accounting and Finance',
-      'Department of Management',
-      'Department of Marketing',
-      'Department of Tourism and Hospitality Management',
-      'Graduate School of Business'
+      {
+        name: 'Department of Accounting and Finance',
+        courses: [
+          'Bachelor of Accountancy',
+          'Bachelor of Finance'
+        ]
+      },
+      {
+        name: 'Department of Management',
+        courses: [
+          'Bachelor of Business Administration (Management)',
+          'Bachelor of Business Administration (Entrepreneurship)',
+          'Bachelor of Business Administration (Logistics & SCM)'
+        ]
+      },
+      {
+        name: 'Department of Marketing',
+        courses: [
+          'Bachelor of Business Administration (Marketing)',
+          'Bachelor of Business Administration (Intl Business)'
+        ]
+      },
+      {
+        name: 'Department of Tourism and Hospitality Management',
+        courses: [
+          'Bachelor of Business Administration (Tourism & Hospitality)'
+        ]
+      },
+      {
+        name: 'Graduate School of Business',
+        courses: [
+          'Master of Business Administration (MBA)'
+        ]
+      }
     ]
   },
   {
     name: 'Faculty of Education',
     departments: [
-      'Department of Educational Foundations',
-      'Department of Educational Technology',
-      'Department of Family and Consumer Sciences',
-      'Department of Languages and Social Sciences Education',
-      'Department of Lifelong Learning and Community Development',
-      'Department of Mathematics and Science Education',
-      'Department of Primary Education',
-      'Department of Sports Science'
+      {
+        name: 'Department of Primary Education',
+        courses: [
+          'Bachelor of Primary Education',
+          'Bachelor of Education (Early Childhood)'
+        ]
+      },
+      {
+        name: 'Department of Mathematics and Science Education',
+        courses: [
+          'Bachelor of Education (Science)'
+        ]
+      },
+      {
+        name: 'Department of Educational Foundations',
+        courses: [
+          'Bachelor of Education (Special Education)',
+          'Bachelor of Education (Counselling)'
+        ]
+      },
+      {
+        name: 'Department of Educational Technology',
+        courses: []
+      },
+      {
+        name: 'Department of Family and Consumer Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Languages and Social Sciences Education',
+        courses: []
+      },
+      {
+        name: 'Department of Lifelong Learning and Community Development',
+        courses: []
+      },
+      {
+        name: 'Department of Sports Science',
+        courses: []
+      }
     ]
   },
   {
     name: 'Faculty of Engineering and Technology',
     departments: [
-      'Department of Architecture and Planning',
-      'Department of Civil Engineering',
-      'Department of Electrical Engineering',
-      'Department of Industrial Design and Technology',
-      'Department of Mechanical Engineering'
+      {
+        name: 'Department of Architecture and Planning',
+        courses: [
+          'Bachelor of Architecture',
+          'BSc Urban and Regional Planning'
+        ]
+      },
+      {
+        name: 'Department of Civil Engineering',
+        courses: [
+          'Bachelor of Engineering (Civil)'
+        ]
+      },
+      {
+        name: 'Department of Electrical Engineering',
+        courses: [
+          'Bachelor of Electrical and Electronic Engineering'
+        ]
+      },
+      {
+        name: 'Department of Mechanical Engineering',
+        courses: [
+          'Bachelor of Engineering (Mechanical)'
+        ]
+      },
+      {
+        name: 'Department of Industrial Design and Technology',
+        courses: [
+          'Bachelor of Design (Industrial Design)'
+        ]
+      }
     ]
   },
   {
     name: 'Faculty of Health Sciences',
     departments: [
-      'School of Allied Health Professions',
-      'School of Nursing',
-      'School of Pharmacy',
-      'School of Public Health'
+      {
+        name: 'School of Nursing',
+        courses: [
+          'Bachelor of Nursing Science'
+        ]
+      },
+      {
+        name: 'School of Pharmacy',
+        courses: [
+          'Bachelor of Pharmacy'
+        ]
+      },
+      {
+        name: 'School of Allied Health Professions',
+        courses: [
+          'BSc Medical Laboratory Sciences'
+        ]
+      },
+      {
+        name: 'School of Public Health',
+        courses: []
+      }
     ]
   },
   {
     name: 'Faculty of Humanities',
     departments: [
-      'Department of African Languages and Literature',
-      'Department of Chinese Studies',
-      'Department of English',
-      'Department of French',
-      'Department of History',
-      'Department of Library and Information Studies',
-      'Department of Media Studies',
-      'Department of Portuguese Studies',
-      'Department of Theology and Religious Studies',
-      'Department of Visual and Performing Arts'
+      {
+        name: 'Department of English',
+        courses: [
+          'Bachelor of Arts (English)'
+        ]
+      },
+      {
+        name: 'Department of Media Studies',
+        courses: [
+          'Bachelor of Media Studies'
+        ]
+      },
+      {
+        name: 'Department of African Languages and Literature',
+        courses: []
+      },
+      {
+        name: 'Department of Chinese Studies',
+        courses: []
+      },
+      {
+        name: 'Department of French',
+        courses: []
+      },
+      {
+        name: 'Department of History',
+        courses: []
+      },
+      {
+        name: 'Department of Library and Information Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Portuguese Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Theology and Religious Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Visual and Performing Arts',
+        courses: []
+      }
     ]
   },
   {
     name: 'Faculty of Medicine',
     departments: [
-      'Department of Anaesthesia and Critical Care Medicine',
-      'Department of Biomedical Sciences',
-      'Department of Emergency Medicine',
-      'Department of Family Medicine & Public Health',
-      'Department of Internal Medicine',
-      'Department of Medical Education',
-      'Department of Obstetrics and Gynaecology',
-      'Department of Paediatrics and Adolescent Health',
-      'Department of Pathology',
-      'Department of Psychiatry',
-      'Department of Radiology',
-      'Department of Surgery'
+      {
+        name: 'Department of Medical Education',
+        courses: [
+          'Bachelor of Medicine Bachelor of Surgery (MBBS)'
+        ]
+      },
+      {
+        name: 'Department of Anaesthesia and Critical Care Medicine',
+        courses: []
+      },
+      {
+        name: 'Department of Biomedical Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Emergency Medicine',
+        courses: []
+      },
+      {
+        name: 'Department of Family Medicine & Public Health',
+        courses: []
+      },
+      {
+        name: 'Department of Internal Medicine',
+        courses: []
+      },
+      {
+        name: 'Department of Obstetrics and Gynaecology',
+        courses: []
+      },
+      {
+        name: 'Department of Paediatrics and Adolescent Health',
+        courses: []
+      },
+      {
+        name: 'Department of Pathology',
+        courses: []
+      },
+      {
+        name: 'Department of Psychiatry',
+        courses: []
+      },
+      {
+        name: 'Department of Radiology',
+        courses: []
+      },
+      {
+        name: 'Department of Surgery',
+        courses: []
+      }
     ]
   },
   {
     name: 'Faculty of Science',
     departments: [
-      'Department of Biological Sciences',
-      'Department of Chemistry',
-      'Department of Computer Science',
-      'Department of Environmental Science',
-      'Department of Geology',
-      'Department of Mathematics',
-      'Department of Physics'
+      {
+        name: 'Department of Computer Science',
+        courses: [
+          'Bachelor of Science (Computer Science)',
+          'Bachelor of Information Systems'
+        ]
+      },
+      {
+        name: 'Department of Physics',
+        courses: [
+          'Bachelor of Science (Physics)'
+        ]
+      },
+      {
+        name: 'Department of Biological Sciences',
+        courses: [
+          'Bachelor of Science (Biological Sciences)'
+        ]
+      },
+      {
+        name: 'Department of Chemistry',
+        courses: []
+      },
+      {
+        name: 'Department of Environmental Science',
+        courses: []
+      },
+      {
+        name: 'Department of Geology',
+        courses: []
+      },
+      {
+        name: 'Department of Mathematics',
+        courses: []
+      }
     ]
   },
   {
     name: 'Faculty of Social Sciences',
     departments: [
-      'Department of Economics',
-      'Department of Law',
-      'Department of Political and Administrative Studies',
-      'Department of Population Studies',
-      'Department of Psychology',
-      'Department of Social Work',
-      'Department of Sociology',
-      'Department of Statistics'
+      {
+        name: 'Department of Law',
+        courses: [
+          'Bachelor of Laws (LLB)'
+        ]
+      },
+      {
+        name: 'Department of Economics',
+        courses: [
+          'Bachelor of Arts in Economics'
+        ]
+      },
+      {
+        name: 'Department of Political and Administrative Studies',
+        courses: [
+          'Bachelor of Arts in Political Science'
+        ]
+      },
+      {
+        name: 'Department of Social Work',
+        courses: [
+          'Bachelor of Social Work'
+        ]
+      },
+      {
+        name: 'Department of Population Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Psychology',
+        courses: []
+      },
+      {
+        name: 'Department of Sociology',
+        courses: []
+      },
+      {
+        name: 'Department of Statistics',
+        courses: []
+      }
     ]
   },
   {
     name: 'Research Institutes',
     departments: [
-      'Okavango Research Institute (ORI)'
+      {
+        name: 'Okavango Research Institute (ORI)',
+        courses: []
+      }
     ]
   }
 ]
@@ -930,8 +1170,39 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                           {UB_FACULTIES
                             .find(f => f.name === candidateInfo.faculty)
                             ?.departments.map((dept) => (
-                              <option key={dept} value={dept}>
-                                {dept}
+                              <option key={dept.name} value={dept.name}>
+                                {dept.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Course dropdown - only for UB and when department is selected */}
+                    {candidateInfo.university === 'University of Botswana' && candidateInfo.department && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Course<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.course}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, course: e.target.value }))}
+                          required
+                        >
+                          <option value="">Select course</option>
+                          {UB_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.find(d => d.name === candidateInfo.department)
+                            ?.courses.map((course) => (
+                              <option key={course} value={course}>
+                                {course}
                               </option>
                             ))}
                         </select>
