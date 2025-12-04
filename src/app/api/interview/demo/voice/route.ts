@@ -80,7 +80,7 @@ These transitions should feel conversational, not robotic.`
       config: {
         voice: 'aura-asteria-en',
         speechSpeed: 1.15,
-        thinkModel: 'gpt-5-mini',
+        thinkModel: 'gpt-4o-mini',
         thinkProvider: 'open_ai',
         maxDuration,
         language: 'en',
