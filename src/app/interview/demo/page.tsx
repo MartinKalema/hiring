@@ -1090,6 +1090,20 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
             </a>
 
             <div className="w-full max-w-md">
+              {/* Back button - only show on step 2 */}
+              {formStep === 2 && (
+                <button
+                  type="button"
+                  onClick={() => setFormStep(1)}
+                  className="mb-4 text-xs text-aibos-blue hover:underline flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+              )}
+
               <h1 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
                 Try a Live AI Interview
               </h1>
@@ -1456,19 +1470,6 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                 {formStep === 2 && (
                   <>
                     {/* Step 2: Documents and Additional Info */}
-                    <div className="mb-4">
-                      <button
-                        type="button"
-                        onClick={() => setFormStep(1)}
-                        className="text-xs text-aibos-blue hover:underline flex items-center gap-1"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Back
-                      </button>
-                    </div>
-
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">
                         Profile picture<span className="text-aibos-blue">*</span>
