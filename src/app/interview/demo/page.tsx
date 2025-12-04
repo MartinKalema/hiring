@@ -10,7 +10,459 @@ interface CandidateInfo {
   firstName: string
   lastName: string
   email: string
+  phone: string
+  profilePicture: File | null
+  resume: File | null
+  academicTranscripts: File | null
+  githubProfile: string
+  university: string
+  faculty: string
+  department: string
+  course: string
+  yearOfStudy: string
+  howDidYouHear: string
+  gpa: string
+  daysPerWeek: string
 }
+
+// University of Botswana faculties, departments, and courses
+const UB_FACULTIES = [
+  {
+    name: 'Faculty of Business',
+    departments: [
+      {
+        name: 'Department of Accounting and Finance',
+        courses: [
+          'Bachelor of Accountancy',
+          'Bachelor of Finance'
+        ]
+      },
+      {
+        name: 'Department of Management',
+        courses: [
+          'Bachelor of Business Administration (Management)',
+          'Bachelor of Business Administration (Entrepreneurship)',
+          'Bachelor of Business Administration (Logistics & SCM)'
+        ]
+      },
+      {
+        name: 'Department of Marketing',
+        courses: [
+          'Bachelor of Business Administration (Marketing)',
+          'Bachelor of Business Administration (Intl Business)'
+        ]
+      },
+      {
+        name: 'Department of Tourism and Hospitality Management',
+        courses: [
+          'Bachelor of Business Administration (Tourism & Hospitality)'
+        ]
+      },
+      {
+        name: 'Graduate School of Business',
+        courses: [
+          'Master of Business Administration (MBA)'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Education',
+    departments: [
+      {
+        name: 'Department of Primary Education',
+        courses: [
+          'Bachelor of Primary Education',
+          'Bachelor of Education (Early Childhood)'
+        ]
+      },
+      {
+        name: 'Department of Mathematics and Science Education',
+        courses: [
+          'Bachelor of Education (Science)'
+        ]
+      },
+      {
+        name: 'Department of Educational Foundations',
+        courses: [
+          'Bachelor of Education (Special Education)',
+          'Bachelor of Education (Counselling)'
+        ]
+      },
+      {
+        name: 'Department of Educational Technology',
+        courses: []
+      },
+      {
+        name: 'Department of Family and Consumer Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Languages and Social Sciences Education',
+        courses: []
+      },
+      {
+        name: 'Department of Lifelong Learning and Community Development',
+        courses: []
+      },
+      {
+        name: 'Department of Sports Science',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Engineering and Technology',
+    departments: [
+      {
+        name: 'Department of Architecture and Planning',
+        courses: [
+          'Bachelor of Architecture',
+          'BSc Urban and Regional Planning'
+        ]
+      },
+      {
+        name: 'Department of Civil Engineering',
+        courses: [
+          'Bachelor of Engineering (Civil)'
+        ]
+      },
+      {
+        name: 'Department of Electrical Engineering',
+        courses: [
+          'Bachelor of Electrical and Electronic Engineering'
+        ]
+      },
+      {
+        name: 'Department of Mechanical Engineering',
+        courses: [
+          'Bachelor of Engineering (Mechanical)'
+        ]
+      },
+      {
+        name: 'Department of Industrial Design and Technology',
+        courses: [
+          'Bachelor of Design (Industrial Design)'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Health Sciences',
+    departments: [
+      {
+        name: 'School of Nursing',
+        courses: [
+          'Bachelor of Nursing Science'
+        ]
+      },
+      {
+        name: 'School of Pharmacy',
+        courses: [
+          'Bachelor of Pharmacy'
+        ]
+      },
+      {
+        name: 'School of Allied Health Professions',
+        courses: [
+          'BSc Medical Laboratory Sciences'
+        ]
+      },
+      {
+        name: 'School of Public Health',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Humanities',
+    departments: [
+      {
+        name: 'Department of English',
+        courses: [
+          'Bachelor of Arts (English)'
+        ]
+      },
+      {
+        name: 'Department of Media Studies',
+        courses: [
+          'Bachelor of Media Studies'
+        ]
+      },
+      {
+        name: 'Department of African Languages and Literature',
+        courses: []
+      },
+      {
+        name: 'Department of Chinese Studies',
+        courses: []
+      },
+      {
+        name: 'Department of French',
+        courses: []
+      },
+      {
+        name: 'Department of History',
+        courses: []
+      },
+      {
+        name: 'Department of Library and Information Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Portuguese Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Theology and Religious Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Visual and Performing Arts',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Medicine',
+    departments: [
+      {
+        name: 'Department of Medical Education',
+        courses: [
+          'Bachelor of Medicine Bachelor of Surgery (MBBS)'
+        ]
+      },
+      {
+        name: 'Department of Anaesthesia and Critical Care Medicine',
+        courses: []
+      },
+      {
+        name: 'Department of Biomedical Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Emergency Medicine',
+        courses: []
+      },
+      {
+        name: 'Department of Family Medicine & Public Health',
+        courses: []
+      },
+      {
+        name: 'Department of Internal Medicine',
+        courses: []
+      },
+      {
+        name: 'Department of Obstetrics and Gynaecology',
+        courses: []
+      },
+      {
+        name: 'Department of Paediatrics and Adolescent Health',
+        courses: []
+      },
+      {
+        name: 'Department of Pathology',
+        courses: []
+      },
+      {
+        name: 'Department of Psychiatry',
+        courses: []
+      },
+      {
+        name: 'Department of Radiology',
+        courses: []
+      },
+      {
+        name: 'Department of Surgery',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Science',
+    departments: [
+      {
+        name: 'Department of Computer Science',
+        courses: [
+          'Bachelor of Science (Computer Science)',
+          'Bachelor of Information Systems'
+        ]
+      },
+      {
+        name: 'Department of Physics',
+        courses: [
+          'Bachelor of Science (Physics)'
+        ]
+      },
+      {
+        name: 'Department of Biological Sciences',
+        courses: [
+          'Bachelor of Science (Biological Sciences)'
+        ]
+      },
+      {
+        name: 'Department of Chemistry',
+        courses: []
+      },
+      {
+        name: 'Department of Environmental Science',
+        courses: []
+      },
+      {
+        name: 'Department of Geology',
+        courses: []
+      },
+      {
+        name: 'Department of Mathematics',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Social Sciences',
+    departments: [
+      {
+        name: 'Department of Law',
+        courses: [
+          'Bachelor of Laws (LLB)'
+        ]
+      },
+      {
+        name: 'Department of Economics',
+        courses: [
+          'Bachelor of Arts in Economics'
+        ]
+      },
+      {
+        name: 'Department of Political and Administrative Studies',
+        courses: [
+          'Bachelor of Arts in Political Science'
+        ]
+      },
+      {
+        name: 'Department of Social Work',
+        courses: [
+          'Bachelor of Social Work'
+        ]
+      },
+      {
+        name: 'Department of Population Studies',
+        courses: []
+      },
+      {
+        name: 'Department of Psychology',
+        courses: []
+      },
+      {
+        name: 'Department of Sociology',
+        courses: []
+      },
+      {
+        name: 'Department of Statistics',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Research Institutes',
+    departments: [
+      {
+        name: 'Okavango Research Institute (ORI)',
+        courses: []
+      }
+    ]
+  }
+]
+
+// BIUST faculties, departments, and courses
+const BIUST_FACULTIES = [
+  {
+    name: 'Faculty of Engineering and Technology',
+    departments: [
+      {
+        name: 'Department of Chemical, Materials and Metallurgical Engineering',
+        courses: [
+          'BEng Chemical Engineering'
+        ]
+      },
+      {
+        name: 'Department of Civil and Environmental Engineering',
+        courses: [
+          'BEng Civil and Environmental Engineering'
+        ]
+      },
+      {
+        name: 'Department of Electrical, Computer and Telecommunications Engineering',
+        courses: [
+          'BEng Computer and Telecommunications Engineering',
+          'BEng Electrical and Electronics Engineering'
+        ]
+      },
+      {
+        name: 'Department of Mechanical, Energy and Industrial Engineering',
+        courses: [
+          'BEng Mechanical and Energy Engineering'
+        ]
+      },
+      {
+        name: 'Department of Mining and Geological Engineering',
+        courses: [
+          'BEng Mining Engineering'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Sciences',
+    departments: [
+      {
+        name: 'Department of Biological and Biotechnological Sciences',
+        courses: [
+          'BSc Biological Sciences and Biotechnology'
+        ]
+      },
+      {
+        name: 'Department of Chemical and Forensic Sciences',
+        courses: [
+          'BSc Forensic Sciences'
+        ]
+      },
+      {
+        name: 'Department of Computer Science and Information Systems',
+        courses: [
+          'BSc Computer Science and Software Engineering'
+        ]
+      },
+      {
+        name: 'Department of Earth and Environmental Sciences',
+        courses: [
+          'BSc Earth and Environmental Sciences'
+        ]
+      },
+      {
+        name: 'Department of Mathematics and Statistical Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Physics and Astronomy',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Centre for Business Management, Entrepreneurship and General Education',
+    departments: [
+      {
+        name: 'Department of Academic Literacy and Social Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Business, Management and Entrepreneurship',
+        courses: []
+      }
+    ]
+  }
+]
 
 interface VoiceConfig {
   apiKey: string
@@ -24,10 +476,24 @@ interface VoiceConfig {
 
 export default function DemoInterviewPage() {
   const [stage, setStage] = useState<InterviewStage>('welcome')
+  const [formStep, setFormStep] = useState<1 | 2>(1)
   const [candidateInfo, setCandidateInfo] = useState<CandidateInfo>({
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
+    profilePicture: null,
+    resume: null,
+    academicTranscripts: null,
+    githubProfile: '',
+    university: '',
+    faculty: '',
+    department: '',
+    course: '',
+    yearOfStudy: '',
+    howDidYouHear: '',
+    gpa: '',
+    daysPerWeek: '',
   })
   const [cameraReady, setCameraReady] = useState(false)
   const [micReady, setMicReady] = useState(false)
@@ -57,8 +523,8 @@ export default function DemoInterviewPage() {
   // Demo interview configuration
   const interviewConfig = {
     jobTitle: 'Senior Software Engineer',
-    companyName: 'Demo Company',
-    maxDuration: 9,
+    companyName: 'AIBOS',
+    maxDuration: 15,
     language: 'English',
   }
 
@@ -68,17 +534,51 @@ export default function DemoInterviewPage() {
 
 Your role:
 - Conduct a professional, conversational interview
-- Ask behavioral and technical questions relevant to the role
+- Follow a TWO-PHASE structure: behavioral first (5 minutes), then technical (10 minutes)
 - When answers are vague, probe deeper using the STAR method (Situation, Task, Action, Result)
 - Be warm, encouraging, but professional
 - Listen carefully and ask relevant follow-up questions
 
-Interview structure:
-1. Start with a warm greeting, introduce yourself
-2. Ask about their background and interest in the role
-3. Ask 2-3 behavioral questions about relevant competencies
-4. For each answer, probe deeper if needed
-5. Close with thanks
+INTERVIEW STRUCTURE - STRICTLY FOLLOW THIS TWO-PHASE APPROACH:
+
+PHASE 1 (0-5 minutes): BEHAVIORAL & COMMUNICATION ASSESSMENT
+Focus: Test communication skills, personality, background, and soft skills
+
+1. Start with: "Tell me about yourself" - Let them talk for 1-2 minutes
+2. Ask follow-up questions about their background, education, and interests
+3. Ask 2-3 behavioral questions:
+   - "Tell me about a time when you faced a significant challenge. How did you handle it?"
+   - "Describe a situation where you had to work in a team. What was your role?"
+   - "Can you share an example of when you had to learn something new quickly?"
+4. Assess their communication clarity, confidence, and storytelling ability
+5. Keep this section conversational and comfortable
+
+PHASE 2 (5-15 minutes): TECHNICAL ASSESSMENT
+At exactly 5 minutes, transition: "Great! Now let's shift to some technical questions about your engineering skills."
+
+Focus: Test technical knowledge, problem-solving, and job-specific competencies
+- Ask technical questions relevant to ${interviewConfig.jobTitle}
+- Probe for depth of understanding
+- Present hypothetical scenarios or problems
+- Assess technical thinking and problem-solving approach
+- Continue until 14 minutes, then wrap up
+
+STAYING ON TOPIC - CRITICAL:
+If the candidate goes off-topic, talks about unrelated subjects, or tries to have casual conversation not related to their qualifications:
+- Politely but firmly redirect them back to the interview
+- Say something like: "I appreciate that, but let's stay focused on the interview. Let me ask you about..."
+- Or: "That's interesting, but we have limited time. Let me bring us back to discussing your experience with..."
+- Do NOT engage in off-topic discussions
+- Do NOT answer questions unrelated to the job or company
+- Keep the conversation strictly professional and interview-focused
+
+Examples of OFF-TOPIC that require redirection:
+- Personal stories not related to work experience
+- Casual chitchat about weather, hobbies, news, etc.
+- Questions about you (the AI) or how the system works
+- Attempts to have a friendly conversation instead of answering interview questions
+
+Be strict but polite. This is a professional interview, not a casual chat.
 
 EARLY TERMINATION:
 If the candidate wants to end early:
@@ -102,7 +602,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     voice: voiceConfig?.voice || 'aura-asteria-en',
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
     thinkProvider: voiceConfig?.thinkProvider || 'open_ai',
-    thinkModel: voiceConfig?.thinkModel || 'gpt-5-mini',
+    thinkModel: voiceConfig?.thinkModel || 'gpt-4o-mini',
     onTranscript: () => {
       // Don't clear text when user speaks - keep agent text visible
     },
@@ -607,6 +1107,20 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
             </a>
 
             <div className="w-full max-w-md">
+              {/* Back button - only show on step 2 */}
+              {formStep === 2 && (
+                <button
+                  type="button"
+                  onClick={() => setFormStep(1)}
+                  className="mb-4 text-sm text-aibos-blue hover:underline flex items-center gap-1 font-medium"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+              )}
+
               <h1 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
                 Try a Live AI Interview
               </h1>
@@ -615,61 +1129,487 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                 Experience our AI interviewer in action for the <strong>{interviewConfig.jobTitle}</strong> position. Enter your details to begin the demo.
               </p>
 
-              <form onSubmit={handleContinueToSetup} className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First name<span className="text-[#0066cc]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
-                      value={candidateInfo.firstName}
-                      onChange={(e) => setCandidateInfo(prev => ({ ...prev, firstName: e.target.value }))}
-                      placeholder="John"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last name<span className="text-[#0066cc]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
-                      value={candidateInfo.lastName}
-                      onChange={(e) => setCandidateInfo(prev => ({ ...prev, lastName: e.target.value }))}
-                      placeholder="Doe"
-                      required
-                    />
-                  </div>
-                </div>
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                if (formStep === 1) {
+                  setFormStep(2)
+                } else {
+                  handleContinueToSetup(e)
+                }
+              }} className="space-y-4">
+                {formStep === 1 && (
+                  <>
+                    {/* Step 1: Basic Information */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          First name<span className="text-aibos-blue">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                          value={candidateInfo.firstName}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, firstName: e.target.value }))}
+                          placeholder="John"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Last name<span className="text-aibos-blue">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                          value={candidateInfo.lastName}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, lastName: e.target.value }))}
+                          placeholder="Doe"
+                          required
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email<span className="text-[#0066cc]">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-colors"
-                    value={candidateInfo.email}
-                    onChange={(e) => setCandidateInfo(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="john@example.com"
-                    required
-                  />
-                </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Email<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.email}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="john@example.com"
+                        required
+                      />
+                    </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-[#0066cc] hover:bg-[#004c99] text-white px-6 py-3 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!candidateInfo.firstName || !candidateInfo.lastName || !candidateInfo.email}
-                >
-                  Start Interview
-                </button>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Phone number<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9+\s\-()]+"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.phone}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="+256 700 123 456"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        University<span className="text-aibos-blue">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundSize: '1.25rem'
+                        }}
+                        value={candidateInfo.university}
+                        onChange={(e) => {
+                          setCandidateInfo(prev => ({
+                            ...prev,
+                            university: e.target.value,
+                            faculty: '',
+                            department: '',
+                            course: ''
+                          }))
+                        }}
+                        required
+                      >
+                        <option value="">Select university</option>
+                        <option value="University of Botswana">University of Botswana</option>
+                        <option value="Botswana International University of Science & Technology">Botswana International University of Science & Technology (BIUST)</option>
+                      </select>
+                    </div>
+
+                    {/* Faculty dropdown - only for UB */}
+                    {candidateInfo.university === 'University of Botswana' && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Faculty<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.faculty}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              faculty: e.target.value,
+                              department: '',
+                              course: ''
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select faculty</option>
+                          {UB_FACULTIES.map((faculty) => (
+                            <option key={faculty.name} value={faculty.name}>
+                              {faculty.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Department dropdown - only for UB and when faculty is selected */}
+                    {candidateInfo.university === 'University of Botswana' && candidateInfo.faculty && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Department<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.department}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              department: e.target.value
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select department</option>
+                          {UB_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.map((dept) => (
+                              <option key={dept.name} value={dept.name}>
+                                {dept.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Course dropdown - only for UB and when department is selected */}
+                    {candidateInfo.university === 'University of Botswana' && candidateInfo.department && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Course<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.course}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, course: e.target.value }))}
+                          required
+                        >
+                          <option value="">Select course</option>
+                          {UB_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.find(d => d.name === candidateInfo.department)
+                            ?.courses.map((course) => (
+                              <option key={course} value={course}>
+                                {course}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Faculty dropdown - only for BIUST */}
+                    {candidateInfo.university === 'Botswana International University of Science & Technology' && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Faculty<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.faculty}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              faculty: e.target.value,
+                              department: '',
+                              course: ''
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select faculty</option>
+                          {BIUST_FACULTIES.map((faculty) => (
+                            <option key={faculty.name} value={faculty.name}>
+                              {faculty.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Department dropdown - only for BIUST and when faculty is selected */}
+                    {candidateInfo.university === 'Botswana International University of Science & Technology' && candidateInfo.faculty && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Department<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.department}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              department: e.target.value,
+                              course: ''
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select department</option>
+                          {BIUST_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.map((dept) => (
+                              <option key={dept.name} value={dept.name}>
+                                {dept.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Course dropdown - only for BIUST and when department is selected */}
+                    {candidateInfo.university === 'Botswana International University of Science & Technology' && candidateInfo.department && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Course<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.course}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, course: e.target.value }))}
+                          required
+                        >
+                          <option value="">Select course</option>
+                          {BIUST_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.find(d => d.name === candidateInfo.department)
+                            ?.courses.map((course) => (
+                              <option key={course} value={course}>
+                                {course}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Year of study - for all universities */}
+                    {candidateInfo.university && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Year of study<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.yearOfStudy}
+                          onChange={(e) => setCandidateInfo(prev => ({ ...prev, yearOfStudy: e.target.value }))}
+                          required
+                        >
+                          <option value="">Select year</option>
+                          <option value="1">Year 1</option>
+                          <option value="2">Year 2</option>
+                          <option value="3">Year 3</option>
+                          <option value="4">Year 4</option>
+                          <option value="5">Year 5+</option>
+                          <option value="graduated">Graduated</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        GPA<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.gpa}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, gpa: e.target.value }))}
+                        placeholder="e.g., 3.5/4.0"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-aibos-blue hover:bg-aibos-darkBlue text-white px-6 py-3 rounded-full font-medium transition-colors"
+                    >
+                      Continue
+                    </button>
+                  </>
+                )}
+
+                {formStep === 2 && (
+                  <>
+                    {/* Step 2: Documents and Additional Info */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Profile picture<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-aibos-blue/10 file:text-aibos-blue hover:file:bg-aibos-blue/20"
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, profilePicture: e.target.files?.[0] || null }))}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Upload a professional photo</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Resume/CV<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-aibos-blue/10 file:text-aibos-blue hover:file:bg-aibos-blue/20"
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, resume: e.target.files?.[0] || null }))}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">PDF, DOC, or DOCX format</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Academic transcripts<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-aibos-blue/10 file:text-aibos-blue hover:file:bg-aibos-blue/20"
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, academicTranscripts: e.target.files?.[0] || null }))}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">PDF format only</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        GitHub profile<span className="text-aibos-blue">*</span>
+                      </label>
+                      <input
+                        type="url"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        value={candidateInfo.githubProfile}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, githubProfile: e.target.value }))}
+                        placeholder="https://github.com/johndoe"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        How did you hear about us?<span className="text-aibos-blue">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundSize: '1.25rem'
+                        }}
+                        value={candidateInfo.howDidYouHear}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, howDidYouHear: e.target.value }))}
+                        required
+                      >
+                        <option value="">Select an option</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="job-board">Job Board</option>
+                        <option value="referral">Referral</option>
+                        <option value="university">University Career Center</option>
+                        <option value="social-media">Social Media</option>
+                        <option value="company-website">Company Website</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        How many days per week can you work?<span className="text-aibos-blue">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundSize: '1.25rem'
+                        }}
+                        value={candidateInfo.daysPerWeek}
+                        onChange={(e) => setCandidateInfo(prev => ({ ...prev, daysPerWeek: e.target.value }))}
+                        required
+                      >
+                        <option value="">Select days</option>
+                        <option value="1">1 day</option>
+                        <option value="2">2 days</option>
+                        <option value="3">3 days</option>
+                        <option value="4">4 days</option>
+                        <option value="5">5 days (Full-time)</option>
+                        <option value="6">6 days</option>
+                        <option value="7">7 days</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-aibos-blue hover:bg-aibos-darkBlue text-white px-6 py-3 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!candidateInfo.profilePicture || !candidateInfo.resume || !candidateInfo.academicTranscripts || !candidateInfo.githubProfile || !candidateInfo.howDidYouHear || !candidateInfo.daysPerWeek}
+                    >
+                      Start Interview
+                    </button>
+                  </>
+                )}
 
                 <p className="text-xs text-gray-500 text-center">
                   By continuing, you agree to our{' '}
-                  <a href="#" className="text-[#0066cc] hover:underline">Privacy Policy</a>
+                  <a href="#" className="text-aibos-blue hover:underline">Privacy Policy</a>
                 </p>
               </form>
             </div>
@@ -709,8 +1649,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Takes about 7 - 9 minutes</h3>
-                    <p className="text-sm text-gray-600">We want to get to know you and see if there&apos;s a match!</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Takes about 15 minutes</h3>
+                    <p className="text-sm text-gray-600">5 minutes behavioral + 10 minutes technical questions</p>
                   </div>
                 </div>
               </div>
