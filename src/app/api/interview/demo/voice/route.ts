@@ -71,8 +71,8 @@ These transitions should feel conversational, not robotic.`
     }
 
     // Build greeting message - natural and professional
-    // Note: AIBOS should be pronounced as "eye-boss"
-    const greeting = `Hello ${candidateFirstName}! My name is Lindsey, and I'm from the AIBOS HR team. Welcome to your ${jobTitle} interview. We have ${maxDuration} minutes together, and I'm excited to learn about your background and interest in data engineering. Before we begin, please make sure you're in a comfortable spot with minimal background noise. Ready to get started?`
+    // Write AIBOS phonetically as "Eye-Boss" so the TTS pronounces it correctly
+    const greeting = `Hello ${candidateFirstName}! My name is Lindsey, and I'm from the Eye-Boss HR team. Welcome to your ${jobTitle} interview. We have ${maxDuration} minutes together, and I'm excited to learn about your background and interest in data engineering. Before we begin, please make sure you're in a comfortable spot with minimal background noise. Ready to get started?`
 
     return NextResponse.json({
       apiKey: deepgramApiKey,
