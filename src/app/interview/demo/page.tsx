@@ -715,10 +715,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                       </label>
                       <input
                         type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9+\s\-()]+"
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
                         value={candidateInfo.phone}
                         onChange={(e) => setCandidateInfo(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder="+1 234 567 8900"
+                        placeholder="+256 700 123 456"
                         required
                       />
                     </div>
