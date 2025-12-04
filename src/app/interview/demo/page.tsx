@@ -374,6 +374,96 @@ const UB_FACULTIES = [
   }
 ]
 
+// BIUST faculties, departments, and courses
+const BIUST_FACULTIES = [
+  {
+    name: 'Faculty of Engineering and Technology',
+    departments: [
+      {
+        name: 'Department of Chemical, Materials and Metallurgical Engineering',
+        courses: [
+          'BEng Chemical Engineering'
+        ]
+      },
+      {
+        name: 'Department of Civil and Environmental Engineering',
+        courses: [
+          'BEng Civil and Environmental Engineering'
+        ]
+      },
+      {
+        name: 'Department of Electrical, Computer and Telecommunications Engineering',
+        courses: [
+          'BEng Computer and Telecommunications Engineering',
+          'BEng Electrical and Electronics Engineering'
+        ]
+      },
+      {
+        name: 'Department of Mechanical, Energy and Industrial Engineering',
+        courses: [
+          'BEng Mechanical and Energy Engineering'
+        ]
+      },
+      {
+        name: 'Department of Mining and Geological Engineering',
+        courses: [
+          'BEng Mining Engineering'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Faculty of Sciences',
+    departments: [
+      {
+        name: 'Department of Biological and Biotechnological Sciences',
+        courses: [
+          'BSc Biological Sciences and Biotechnology'
+        ]
+      },
+      {
+        name: 'Department of Chemical and Forensic Sciences',
+        courses: [
+          'BSc Forensic Sciences'
+        ]
+      },
+      {
+        name: 'Department of Computer Science and Information Systems',
+        courses: [
+          'BSc Computer Science and Software Engineering'
+        ]
+      },
+      {
+        name: 'Department of Earth and Environmental Sciences',
+        courses: [
+          'BSc Earth and Environmental Sciences'
+        ]
+      },
+      {
+        name: 'Department of Mathematics and Statistical Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Physics and Astronomy',
+        courses: []
+      }
+    ]
+  },
+  {
+    name: 'Centre for Business Management, Entrepreneurship and General Education',
+    departments: [
+      {
+        name: 'Department of Academic Literacy and Social Sciences',
+        courses: []
+      },
+      {
+        name: 'Department of Business, Management and Entrepreneurship',
+        courses: []
+      }
+    ]
+  }
+]
+
 interface VoiceConfig {
   apiKey: string
   instructions: string
@@ -1209,20 +1299,105 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                       </div>
                     )}
 
-                    {/* Course field - only for BIUST */}
+                    {/* Faculty dropdown - only for BIUST */}
                     {candidateInfo.university === 'Botswana International University of Science & Technology' && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Faculty<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.faculty}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              faculty: e.target.value,
+                              department: '',
+                              course: ''
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select faculty</option>
+                          {BIUST_FACULTIES.map((faculty) => (
+                            <option key={faculty.name} value={faculty.name}>
+                              {faculty.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Department dropdown - only for BIUST and when faculty is selected */}
+                    {candidateInfo.university === 'Botswana International University of Science & Technology' && candidateInfo.faculty && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Department<span className="text-aibos-blue">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
+                          value={candidateInfo.department}
+                          onChange={(e) => {
+                            setCandidateInfo(prev => ({
+                              ...prev,
+                              department: e.target.value,
+                              course: ''
+                            }))
+                          }}
+                          required
+                        >
+                          <option value="">Select department</option>
+                          {BIUST_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.map((dept) => (
+                              <option key={dept.name} value={dept.name}>
+                                {dept.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Course dropdown - only for BIUST and when department is selected */}
+                    {candidateInfo.university === 'Botswana International University of Science & Technology' && candidateInfo.department && (
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           Course<span className="text-aibos-blue">*</span>
                         </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm"
+                        <select
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-aibos-blue/20 focus:border-aibos-blue transition-colors text-sm bg-white appearance-none"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1.25rem'
+                          }}
                           value={candidateInfo.course}
                           onChange={(e) => setCandidateInfo(prev => ({ ...prev, course: e.target.value }))}
-                          placeholder="e.g., Computer Science"
                           required
-                        />
+                        >
+                          <option value="">Select course</option>
+                          {BIUST_FACULTIES
+                            .find(f => f.name === candidateInfo.faculty)
+                            ?.departments.find(d => d.name === candidateInfo.department)
+                            ?.courses.map((course) => (
+                              <option key={course} value={course}>
+                                {course}
+                              </option>
+                            ))}
+                        </select>
                       </div>
                     )}
 
