@@ -102,7 +102,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     voice: voiceConfig?.voice || 'aura-asteria-en',
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
     thinkProvider: voiceConfig?.thinkProvider || 'open_ai',
-    thinkModel: voiceConfig?.thinkModel || 'gpt-4o',
+    thinkModel: voiceConfig?.thinkModel || 'gpt-5-mini',
     onTranscript: () => {
       // Don't clear text when user speaks - keep agent text visible
     },
