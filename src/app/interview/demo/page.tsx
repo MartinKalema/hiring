@@ -40,6 +40,7 @@ export default function DemoInterviewPage() {
   const [speedTestStatus, setSpeedTestStatus] = useState<'idle' | 'testing' | 'complete'>('idle')
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null)
   const [setupStep, setSetupStep] = useState<'intro' | 'tests'>('intro')
+  const [location, setLocation] = useState<{ city: string; country: string; ip: string } | null>(null)
   const audioAnalyzerRef = useRef<AnalyserNode | null>(null)
   const audioStreamRef = useRef<MediaStream | null>(null)
   const animationFrameRef = useRef<number | null>(null)
@@ -100,8 +101,8 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     instructions: voiceConfig?.instructions || buildInstructions(),
     voice: voiceConfig?.voice || 'aura-asteria-en',
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
-    thinkProvider: voiceConfig?.thinkProvider || 'anthropic',
-    thinkModel: voiceConfig?.thinkModel || 'claude-3-5-sonnet',
+    thinkProvider: voiceConfig?.thinkProvider || 'open_ai',
+    thinkModel: voiceConfig?.thinkModel || 'gpt-5-mini',
     onTranscript: () => {
       // Don't clear text when user speaks - keep agent text visible
     },
@@ -245,25 +246,80 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     setStage('setup')
   }
 
-  // Internet speed test using a simple download method
+  // Internet speed test with real-time updates like Fast.com
   const runSpeedTest = async () => {
     setSpeedTestStatus('testing')
-    setInternetSpeed(null)
+    setInternetSpeed(0)
 
     try {
-      // Download a smaller test file for faster results - 500KB
-      const fileSize = 500 * 1024 // 500KB
+      const speeds: number[] = []
+      const testDuration = 20000 // Test for 20 seconds total
       const startTime = performance.now()
+      let totalReceivedBytes = 0
+      let isRunning = true
 
-      // Use Cloudflare speed test endpoint with smaller file
-      const response = await fetch('https://speed.cloudflare.com/__down?bytes=' + fileSize)
-      await response.blob()
+      // Update speed display every 200ms
+      const updateInterval = setInterval(() => {
+        const elapsed = (performance.now() - startTime) / 1000
 
-      const endTime = performance.now()
-      const durationInSeconds = (endTime - startTime) / 1000
-      const speedMbps = (fileSize * 8) / (durationInSeconds * 1000000)
+        if (totalReceivedBytes > 0 && elapsed > 0) {
+          // Calculate current speed in Mbps
+          const speedMbps = (totalReceivedBytes * 8) / (elapsed * 1000000)
+          speeds.push(speedMbps)
+          setInternetSpeed(Math.round(speedMbps))
+        }
 
-      setInternetSpeed(Math.round(speedMbps))
+        // Stop after test duration
+        if (elapsed >= testDuration / 1000) {
+          clearInterval(updateInterval)
+          isRunning = false
+        }
+      }, 200)
+
+      // Download multiple files continuously for the full duration
+      const downloadFile = async (size: number) => {
+        try {
+          const response = await fetch(`https://speed.cloudflare.com/__down?bytes=${size}`)
+          const reader = response.body?.getReader()
+          if (!reader) return
+
+          while (isRunning) {
+            const { done, value } = await reader.read()
+            if (done) break
+            totalReceivedBytes += value.length
+
+            // Check if time is up
+            if (performance.now() - startTime >= testDuration) {
+              reader.cancel()
+              break
+            }
+          }
+        } catch (error) {
+          console.error('Download error:', error)
+        }
+      }
+
+      // Start multiple parallel downloads to keep data flowing
+      const downloads = [
+        downloadFile(10 * 1024 * 1024), // 10MB
+        downloadFile(10 * 1024 * 1024), // 10MB
+        downloadFile(10 * 1024 * 1024), // 10MB
+      ]
+
+      // Wait for test duration or all downloads to complete
+      await Promise.race([
+        Promise.all(downloads),
+        new Promise(resolve => setTimeout(resolve, testDuration))
+      ])
+
+      clearInterval(updateInterval)
+
+      // Calculate final average speed
+      if (speeds.length > 0) {
+        const avgSpeed = speeds.slice(-10).reduce((a, b) => a + b, 0) / Math.min(speeds.length, 10)
+        setInternetSpeed(Math.round(avgSpeed))
+      }
+
       setSpeedTestStatus('complete')
     } catch (error) {
       console.error('Speed test failed:', error)
@@ -347,9 +403,35 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     setAudioLevel(0)
   }
 
+  // Capture location using IP geolocation (privacy-friendly, no permission needed)
+  const captureLocation = async () => {
+    try {
+      // Using ipapi.co free service (no API key needed for basic info)
+      const response = await fetch('https://ipapi.co/json/')
+      const data = await response.json()
+
+      setLocation({
+        city: data.city || 'Unknown',
+        country: data.country_name || 'Unknown',
+        ip: data.ip || 'Unknown'
+      })
+
+      console.log('Location captured:', data.city, data.country_name)
+    } catch (error) {
+      console.error('Failed to capture location:', error)
+      setLocation({
+        city: 'Unknown',
+        country: 'Unknown',
+        ip: 'Unknown'
+      })
+    }
+  }
+
   // Auto-start tests when setup stage is reached
   useEffect(() => {
     if (stage === 'setup' && setupStep === 'tests') {
+      // Auto-capture location (silent, no permission needed)
+      captureLocation()
       // Auto-run speed test
       runSpeedTest()
       // Auto-start mic test
@@ -719,8 +801,13 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
         <div className="relative z-10 w-full max-w-5xl">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">Video and audio check</h1>
-            <p className="text-gray-600 text-lg">Before you start, make sure your video and audio is set up properly.</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Video and audio check</h1>
+            <p className="text-gray-600 text-sm">Before you start, make sure your video and audio is set up properly.</p>
+            {location && (
+              <p className="text-xs text-gray-500 mt-2">
+                Location: {location.city}, {location.country}
+              </p>
+            )}
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6 mb-8">
@@ -743,8 +830,10 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
                 {speedTestStatus === 'testing' && (
                   <div className="text-center py-8">
-                    <div className="text-8xl font-bold text-gray-300 mb-4 animate-pulse">--</div>
-                    <div className="text-2xl text-gray-400 font-semibold">Mbps</div>
+                    <div className="text-8xl font-bold text-gray-900 mb-4">
+                      {internetSpeed || '--'}
+                    </div>
+                    <div className="text-2xl text-gray-600 font-semibold">Mbps</div>
                     <p className="text-gray-500 mt-4">Testing your connection...</p>
                   </div>
                 )}
