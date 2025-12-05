@@ -563,22 +563,28 @@ Focus: Test technical knowledge, problem-solving, and job-specific competencies
 - Assess technical thinking and problem-solving approach
 - Continue until 14 minutes, then wrap up
 
+TIME AWARENESS - CRITICAL:
+You will receive TIME UPDATE messages telling you elapsed time. When you receive these:
+- At 5 minutes: IMMEDIATELY transition to Phase 2 (technical). Say: "Great background! Now let's shift to technical questions."
+- At 7 minutes: If still on first technical topic, move to next. Say: "Let's move to another area..."
+- At 10 minutes: Ensure you've covered 2-3 technical areas. Move quickly between topics.
+- At 12 minutes: Start wrapping up current discussion.
+- At 13 minutes: Begin closing phase regardless of current topic.
+- At 14 minutes: Deliver final closing statement.
+
 STAYING ON TOPIC - CRITICAL:
-If the candidate goes off-topic, talks about unrelated subjects, or tries to have casual conversation not related to their qualifications:
-- Politely but firmly redirect them back to the interview
-- Say something like: "I appreciate that, but let's stay focused on the interview. Let me ask you about..."
-- Or: "That's interesting, but we have limited time. Let me bring us back to discussing your experience with..."
+If the candidate goes off-topic:
+- Politely but firmly redirect: "Let's stay focused on the interview. Tell me about..."
 - Do NOT engage in off-topic discussions
-- Do NOT answer questions unrelated to the job or company
-- Keep the conversation strictly professional and interview-focused
+- Keep the conversation strictly professional
 
-Examples of OFF-TOPIC that require redirection:
-- Personal stories not related to work experience
-- Casual chitchat about weather, hobbies, news, etc.
-- Questions about you (the AI) or how the system works
-- Attempts to have a friendly conversation instead of answering interview questions
+Examples of OFF-TOPIC:
+- Personal stories not related to work
+- Casual chitchat
+- Questions about you (the AI)
+- Attempts at friendly conversation
 
-Be strict but polite. This is a professional interview, not a casual chat.
+Be strict but polite.
 
 EARLY TERMINATION:
 If the candidate wants to end early:
@@ -690,33 +696,43 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
           const newTime = prev + 1
           const maxSeconds = interviewConfig.maxDuration * 60
 
-          // Define time checkpoints (in seconds)
           const checkpoints = {
-            halfway: Math.floor(maxSeconds * 0.5),      // 50% - 4.5 min for 9 min interview
-            threeQuarters: Math.floor(maxSeconds * 0.75), // 75% - 6.75 min
-            twoMinLeft: maxSeconds - 120,                 // 2 minutes remaining
-            oneMinLeft: maxSeconds - 60,                  // 1 minute remaining
-            thirtySecLeft: maxSeconds - 30,               // 30 seconds remaining
+            phase1End: 300,
+            sevenMin: 420,
+            tenMin: 600,
+            twelveMin: 720,
+            thirteenMin: 780,
+            fourteenMin: 840,
           }
 
-          if (newTime === checkpoints.halfway && !timeCheckpointsTriggered.current.has(checkpoints.halfway)) {
-            timeCheckpointsTriggered.current.add(checkpoints.halfway)
-            console.log('[Interview] 50% checkpoint')
+          if (newTime === checkpoints.phase1End && !timeCheckpointsTriggered.current.has(checkpoints.phase1End)) {
+            timeCheckpointsTriggered.current.add(checkpoints.phase1End)
+            voiceAgent.injectMessage('TIME UPDATE: 5 minutes elapsed. Transition to Phase 2 (Technical Assessment) now.')
           }
 
-          if (newTime === checkpoints.threeQuarters && !timeCheckpointsTriggered.current.has(checkpoints.threeQuarters)) {
-            timeCheckpointsTriggered.current.add(checkpoints.threeQuarters)
-            console.log('[Interview] 75% checkpoint')
+          if (newTime === checkpoints.sevenMin && !timeCheckpointsTriggered.current.has(checkpoints.sevenMin)) {
+            timeCheckpointsTriggered.current.add(checkpoints.sevenMin)
+            voiceAgent.injectMessage('TIME UPDATE: 7 minutes elapsed. Move to next technical topic if still on first one.')
           }
 
-          if (newTime === checkpoints.twoMinLeft && !timeCheckpointsTriggered.current.has(checkpoints.twoMinLeft)) {
-            timeCheckpointsTriggered.current.add(checkpoints.twoMinLeft)
-            console.log('[Interview] 2 min remaining')
+          if (newTime === checkpoints.tenMin && !timeCheckpointsTriggered.current.has(checkpoints.tenMin)) {
+            timeCheckpointsTriggered.current.add(checkpoints.tenMin)
+            voiceAgent.injectMessage('TIME UPDATE: 10 minutes elapsed. Ensure you have covered multiple technical areas.')
           }
 
-          if (newTime === checkpoints.oneMinLeft && !timeCheckpointsTriggered.current.has(checkpoints.oneMinLeft)) {
-            timeCheckpointsTriggered.current.add(checkpoints.oneMinLeft)
-            console.log('[Interview] 1 min remaining')
+          if (newTime === checkpoints.twelveMin && !timeCheckpointsTriggered.current.has(checkpoints.twelveMin)) {
+            timeCheckpointsTriggered.current.add(checkpoints.twelveMin)
+            voiceAgent.injectMessage('TIME UPDATE: 12 minutes elapsed. Begin wrapping up current topic.')
+          }
+
+          if (newTime === checkpoints.thirteenMin && !timeCheckpointsTriggered.current.has(checkpoints.thirteenMin)) {
+            timeCheckpointsTriggered.current.add(checkpoints.thirteenMin)
+            voiceAgent.injectMessage('TIME UPDATE: 13 minutes elapsed. Start closing phase.')
+          }
+
+          if (newTime === checkpoints.fourteenMin && !timeCheckpointsTriggered.current.has(checkpoints.fourteenMin)) {
+            timeCheckpointsTriggered.current.add(checkpoints.fourteenMin)
+            voiceAgent.injectMessage('TIME UPDATE: 14 minutes elapsed. Final minute - deliver closing statement.')
           }
 
           if (newTime >= maxSeconds) {
