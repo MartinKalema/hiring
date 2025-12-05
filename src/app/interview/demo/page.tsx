@@ -903,27 +903,29 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     setAudioLevel(0)
   }
 
-  // Capture location using IP geolocation (privacy-friendly, no permission needed)
   const captureLocation = async () => {
     try {
-      // Using ipapi.co free service (no API key needed for basic info)
-      const response = await fetch('https://ipapi.co/json/')
-      const data = await response.json()
+      const response = await fetch('/api/location')
+
+      if (!response.ok) {
+        console.error('Location API error:', response.status)
+        return
+      }
+
+      const text = await response.text()
+      console.log('Location API response:', text)
+
+      const data = JSON.parse(text)
 
       setLocation({
         city: data.city || 'Unknown',
-        country: data.country_name || 'Unknown',
+        country: data.country || 'Unknown',
         ip: data.ip || 'Unknown'
       })
 
-      console.log('Location captured:', data.city, data.country_name)
+      console.log('Location captured:', data)
     } catch (error) {
-      console.error('Failed to capture location:', error)
-      setLocation({
-        city: 'Unknown',
-        country: 'Unknown',
-        ip: 'Unknown'
-      })
+      console.error('Location failed:', error)
     }
   }
 
