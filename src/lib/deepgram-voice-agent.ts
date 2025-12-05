@@ -137,7 +137,9 @@ export class DeepgramVoiceAgent {
               provider: {
                 type: 'deepgram',
                 model: this.options.listenModel || 'nova-3'
-              }
+              },
+              eot_threshold: 0.7,
+              eot_timeout_ms: 1500
             },
             think: {
               provider: {
