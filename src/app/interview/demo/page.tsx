@@ -1769,9 +1769,15 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Video and audio check</h1>
             <p className="text-gray-600 text-sm">Before you start, make sure your video and audio is set up properly.</p>
             {location && (
-              <p className="text-xs text-gray-500 mt-2">
-                Location: {location.city}, {location.country}
-              </p>
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-full">
+                <svg className="w-4 h-4 text-aibos-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-sm font-medium text-gray-900">
+                  {location.city}, {location.country}
+                </span>
+              </div>
             )}
           </div>
 
