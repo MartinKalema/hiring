@@ -908,22 +908,29 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     try {
       // Call our backend API to avoid CORS issues
       const response = await fetch('/api/location')
-      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('Location API returned error:', response.status)
+        return // Just exit silently
+      }
+
+      // Get the text first to debug
+      const text = await response.text()
+      console.log('Location API response:', text)
+
+      // Try to parse as JSON
+      const data = JSON.parse(text)
 
       setLocation({
         city: data.city || 'Unknown',
-        country: data.country_name || data.country || 'Unknown',
+        country: data.country || 'Unknown',
         ip: data.ip || 'Unknown'
       })
 
-      console.log('Location captured:', data.city, data.country)
+      console.log('Location captured successfully:', data)
     } catch (error) {
-      console.error('Failed to capture location:', error)
-      setLocation({
-        city: 'Unknown',
-        country: 'Unknown',
-        ip: 'Unknown'
-      })
+      // Silently fail - don't break the user experience
+      console.error('Location capture failed (non-critical):', error)
     }
   }
 
