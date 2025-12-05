@@ -903,22 +903,18 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
     setAudioLevel(0)
   }
 
-  // Capture location using IP geolocation (privacy-friendly, no permission needed)
   const captureLocation = async () => {
     try {
-      // Call our backend API to avoid CORS issues
       const response = await fetch('/api/location')
 
       if (!response.ok) {
-        console.error('Location API returned error:', response.status)
-        return // Just exit silently
+        console.error('Location API error:', response.status)
+        return
       }
 
-      // Get the text first to debug
       const text = await response.text()
       console.log('Location API response:', text)
 
-      // Try to parse as JSON
       const data = JSON.parse(text)
 
       setLocation({
@@ -927,10 +923,9 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
         ip: data.ip || 'Unknown'
       })
 
-      console.log('Location captured successfully:', data)
+      console.log('Location captured:', data)
     } catch (error) {
-      // Silently fail - don't break the user experience
-      console.error('Location capture failed (non-critical):', error)
+      console.error('Location failed:', error)
     }
   }
 
