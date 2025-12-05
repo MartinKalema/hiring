@@ -1,44 +1,49 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const response = await fetch('https://1.1.1.1/cdn-cgi/trace')
+    const forwarded = request.headers.get('x-forwarded-for')
+    const realIp = request.headers.get('x-real-ip')
+    const cfConnectingIp = request.headers.get('cf-connecting-ip')
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch trace')
-    }
+    const clientIp = cfConnectingIp || (forwarded ? forwarded.split(',')[0].trim() : null) || realIp || 'unknown'
 
-    const text = await response.text()
-
-    const data: Record<string, string> = {}
-    text.split('\n').forEach(line => {
-      const [key, value] = line.split('=')
-      if (key && value) {
-        data[key] = value
-      }
+    console.log('Client IP:', clientIp, 'Headers:', {
+      forwarded,
+      realIp,
+      cfConnectingIp
     })
 
-    let city = 'Unknown'
+    if (!clientIp || clientIp === 'unknown') {
+      const response = await fetch('http://ip-api.com/json/?fields=status,country,city,query')
+      const data = await response.json()
 
-    if (data.ip) {
-      try {
-        const geoResponse = await fetch(`http://ip-api.com/json/${data.ip}?fields=city`)
-        if (geoResponse.ok) {
-          const geoData = await geoResponse.json()
-          city = geoData.city || 'Unknown'
-        }
-      } catch {
-        city = 'Unknown'
-      }
+      return NextResponse.json({
+        city: data.city || 'Unknown',
+        country: data.country || 'Unknown',
+        ip: data.query || 'Unknown'
+      })
+    }
+
+    const response = await fetch(`http://ip-api.com/json/${clientIp}?fields=status,country,city,query`)
+
+    if (!response.ok) {
+      throw new Error('IP API failed')
+    }
+
+    const data = await response.json()
+
+    if (data.status !== 'success') {
+      throw new Error('IP lookup failed')
     }
 
     return NextResponse.json({
-      city: city,
-      country: data.loc || 'Unknown',
-      ip: data.ip || 'Unknown'
+      city: data.city || 'Unknown',
+      country: data.country || 'Unknown',
+      ip: data.query || clientIp
     })
   } catch (error) {
-    console.error('Error fetching location:', error)
+    console.error('Location error:', error)
 
     return NextResponse.json({
       city: 'Unknown',
