@@ -906,17 +906,17 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
   // Capture location using IP geolocation (privacy-friendly, no permission needed)
   const captureLocation = async () => {
     try {
-      // Using ipapi.co free service (no API key needed for basic info)
-      const response = await fetch('https://ipapi.co/json/')
+      // Call our backend API to avoid CORS issues
+      const response = await fetch('/api/location')
       const data = await response.json()
 
       setLocation({
         city: data.city || 'Unknown',
-        country: data.country_name || 'Unknown',
+        country: data.country_name || data.country || 'Unknown',
         ip: data.ip || 'Unknown'
       })
 
-      console.log('Location captured:', data.city, data.country_name)
+      console.log('Location captured:', data.city, data.country)
     } catch (error) {
       console.error('Failed to capture location:', error)
       setLocation({
