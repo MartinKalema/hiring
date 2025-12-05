@@ -837,12 +837,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
       clearInterval(updateInterval)
 
-      // Calculate final average speed
       if (speeds.length > 0) {
-        const avgSpeed = speeds.slice(-10).reduce((a, b) => a + b, 0) / Math.min(speeds.length, 10)
+        const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length
         setInternetSpeed(Math.round(avgSpeed))
       }
 
+      await new Promise(resolve => setTimeout(resolve, 500))
       setSpeedTestStatus('complete')
     } catch (error) {
       console.error('Speed test failed:', error)
