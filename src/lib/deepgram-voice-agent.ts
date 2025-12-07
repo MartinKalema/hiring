@@ -149,7 +149,7 @@ export class DeepgramVoiceAgent {
             speak: {
               provider: {
                 type: 'deepgram',
-                model: this.options.voice || 'aura-asteria-en'
+                model: this.options.voice || 'aura-2-amalthea-en'
               }
             },
             greeting: this.options.greeting
