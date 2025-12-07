@@ -51,7 +51,7 @@ export interface UseVoiceAgentReturn {
   connect: (overrides?: ConnectOptions) => Promise<void>
   disconnect: () => void
   interrupt: () => void
-  injectMessage: (text: string) => void
+  updatePrompt: (additionalInstructions: string) => void
 }
 
 export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentReturn {
@@ -135,8 +135,8 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     console.warn('[Voice Agent] Interrupt not supported with SDK implementation')
   }, [])
 
-  const injectMessage = useCallback((text: string) => {
-    agentRef.current?.injectMessage(text)
+  const updatePrompt = useCallback((additionalInstructions: string) => {
+    agentRef.current?.updatePrompt(additionalInstructions)
   }, [])
 
   // Cleanup on unmount
@@ -160,6 +160,6 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     connect,
     disconnect,
     interrupt,
-    injectMessage,
+    updatePrompt,
   }
 }

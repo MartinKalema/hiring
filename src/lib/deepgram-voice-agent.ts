@@ -367,20 +367,20 @@ export class DeepgramVoiceAgent {
     return sum / dataArray.length / 255
   }
 
-  injectMessage(text: string): void {
+  updatePrompt(additionalInstructions: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('[Deepgram] Cannot inject message - not connected')
+      console.warn('[Deepgram] Cannot update prompt - not connected')
       return
     }
 
     try {
       this.ws.send(JSON.stringify({
-        type: 'Inject',
-        text
+        type: 'UpdatePrompt',
+        prompt: additionalInstructions
       }))
-      console.log('[Deepgram] Injected message:', text)
+      console.log('[Deepgram] Updated prompt with:', additionalInstructions)
     } catch (error) {
-      console.error('[Deepgram] Failed to inject message:', error)
+      console.error('[Deepgram] Failed to update prompt:', error)
     }
   }
 

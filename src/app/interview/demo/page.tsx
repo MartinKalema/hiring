@@ -714,32 +714,17 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
           if (newTime === checkpoints.phase1End && !timeCheckpointsTriggered.current.has(checkpoints.phase1End)) {
             timeCheckpointsTriggered.current.add(checkpoints.phase1End)
-            console.log('[Interview] 5 min - Phase 1 complete')
-          }
-
-          if (newTime === checkpoints.sevenMin && !timeCheckpointsTriggered.current.has(checkpoints.sevenMin)) {
-            timeCheckpointsTriggered.current.add(checkpoints.sevenMin)
-            console.log('[Interview] 7 min elapsed')
+            voiceAgent.updatePrompt('\n\nTIME CHECK: 5 minutes have elapsed. You must now transition to Phase 2 (Technical Assessment). After the candidate finishes their current response, say: "Great! Now let\'s shift to some technical questions."')
           }
 
           if (newTime === checkpoints.tenMin && !timeCheckpointsTriggered.current.has(checkpoints.tenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.tenMin)
-            console.log('[Interview] 10 min elapsed')
-          }
-
-          if (newTime === checkpoints.twelveMin && !timeCheckpointsTriggered.current.has(checkpoints.twelveMin)) {
-            timeCheckpointsTriggered.current.add(checkpoints.twelveMin)
-            console.log('[Interview] 12 min elapsed')
+            voiceAgent.updatePrompt('\n\nTIME CHECK: 10 minutes have elapsed (2/3 through interview). Ensure you have covered multiple technical areas. Move quickly between topics.')
           }
 
           if (newTime === checkpoints.thirteenMin && !timeCheckpointsTriggered.current.has(checkpoints.thirteenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.thirteenMin)
-            console.log('[Interview] 13 min elapsed')
-          }
-
-          if (newTime === checkpoints.fourteenMin && !timeCheckpointsTriggered.current.has(checkpoints.fourteenMin)) {
-            timeCheckpointsTriggered.current.add(checkpoints.fourteenMin)
-            console.log('[Interview] 14 min elapsed')
+            voiceAgent.updatePrompt('\n\nTIME CHECK: 13 minutes elapsed. Only 2 minutes remaining. After current response, begin wrapping up the interview.')
           }
 
           if (newTime >= maxSeconds) {
