@@ -132,7 +132,6 @@ export class DeepgramVoiceAgent {
             }
           },
           agent: {
-            language: this.options.language || 'en',
             listen: {
               provider: {
                 type: 'deepgram',
