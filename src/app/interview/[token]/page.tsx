@@ -357,8 +357,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
   // Time warning injection
   useEffect(() => {
     if (stage === 'active' && isTimeWarning && !timeWarningGiven) {
-      // Inject time warning to agent
-      voiceAgent.injectMessage(`[SYSTEM: 2 minutes remaining in the interview. Start wrapping up.]`)
+      voiceAgent.updatePrompt('\n\nTIME CHECK: 2 minutes remaining in the interview. After current response, start wrapping up.')
       setTimeWarningGiven(true)
     }
   }, [stage, isTimeWarning, timeWarningGiven, voiceAgent])
