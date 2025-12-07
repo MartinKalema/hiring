@@ -79,7 +79,7 @@ These transitions should feel conversational, not robotic.`
       instructions: professionalInstructions,
       config: {
         voice: 'aura-2-amalthea-en',
-        speechSpeed: 1.25,
+        speechSpeed: 1.20,
         thinkModel: 'gpt-4o-mini',
         thinkProvider: 'open_ai',
         maxDuration,
