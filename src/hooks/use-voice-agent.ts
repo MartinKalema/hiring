@@ -52,6 +52,7 @@ export interface UseVoiceAgentReturn {
   disconnect: () => void
   interrupt: () => void
   injectMessage: (text: string) => void
+  updatePrompt: (additionalInstructions: string) => void
 }
 
 export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentReturn {
@@ -139,6 +140,10 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     agentRef.current?.injectMessage(text)
   }, [])
 
+  const updatePrompt = useCallback((additionalInstructions: string) => {
+    agentRef.current?.updatePrompt(additionalInstructions)
+  }, [])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -161,5 +166,6 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     disconnect,
     interrupt,
     injectMessage,
+    updatePrompt,
   }
 }

@@ -384,6 +384,23 @@ export class DeepgramVoiceAgent {
     }
   }
 
+  updatePrompt(additionalInstructions: string): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.warn('[Deepgram] Cannot update prompt - not connected')
+      return
+    }
+
+    try {
+      this.ws.send(JSON.stringify({
+        type: 'UpdatePrompt',
+        prompt: additionalInstructions
+      }))
+      console.log('[Deepgram] Updated prompt with:', additionalInstructions)
+    } catch (error) {
+      console.error('[Deepgram] Failed to update prompt:', error)
+    }
+  }
+
   disconnect(): void {
     console.log('[Deepgram] Disconnecting...')
 
