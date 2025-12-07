@@ -514,7 +514,6 @@ export default function DemoInterviewPage() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfig | null>(null)
-  const lastTimeUpdateRef = useRef<number>(0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
@@ -706,12 +705,6 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
           const elapsedMins = Math.floor(newTime / 60)
           const remainingMins = Math.ceil((maxSeconds - newTime) / 60)
 
-          // Send time update every minute
-          if (newTime % 60 === 0 && newTime !== lastTimeUpdateRef.current) {
-            lastTimeUpdateRef.current = newTime
-            voiceAgent.addTimeContext(elapsedMins, remainingMins, '')
-          }
-
           const checkpoints = {
             phase1End: 300,
             tenMin: 600,
@@ -720,17 +713,17 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
           if (newTime === checkpoints.phase1End && !timeCheckpointsTriggered.current.has(checkpoints.phase1End)) {
             timeCheckpointsTriggered.current.add(checkpoints.phase1End)
-            voiceAgent.addTimeContext(elapsedMins, remainingMins, 'CRITICAL: Transition to Phase 2 Technical Assessment now')
+            voiceAgent.addTimeContext(elapsedMins, remainingMins, 'Transition to Phase 2 Technical Assessment now')
           }
 
           if (newTime === checkpoints.tenMin && !timeCheckpointsTriggered.current.has(checkpoints.tenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.tenMin)
-            voiceAgent.addTimeContext(elapsedMins, remainingMins, 'REMINDER: Cover multiple technical areas')
+            voiceAgent.addTimeContext(elapsedMins, remainingMins, 'Ensure multiple technical areas covered')
           }
 
           if (newTime === checkpoints.thirteenMin && !timeCheckpointsTriggered.current.has(checkpoints.thirteenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.thirteenMin)
-            voiceAgent.addTimeContext(elapsedMins, remainingMins, 'URGENT: Begin wrapping up now')
+            voiceAgent.addTimeContext(elapsedMins, remainingMins, 'Begin wrapping up interview')
           }
 
           if (newTime >= maxSeconds) {

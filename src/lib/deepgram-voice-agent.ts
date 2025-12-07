@@ -369,19 +369,22 @@ export class DeepgramVoiceAgent {
 
   addTimeContext(elapsedMinutes: number, remainingMinutes: number, action: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('[Deepgram] Cannot add time context - not connected')
       return
     }
 
     try {
+      let promptUpdate = `\n\n[TIME: ${elapsedMinutes} min elapsed, ${remainingMinutes} min remaining]`
+      if (action) {
+        promptUpdate += `\n${action}`
+      }
+
       this.ws.send(JSON.stringify({
-        type: 'History',
-        role: 'user',
-        content: `[TIME UPDATE: ${elapsedMinutes} minutes elapsed, ${remainingMinutes} minutes remaining. ${action}]`
+        type: 'UpdatePrompt',
+        prompt: promptUpdate
       }))
-      console.log(`[Deepgram] Time context: ${elapsedMinutes} elapsed, ${remainingMinutes} remaining`)
+      console.log(`[Time] ${elapsedMinutes}/${elapsedMinutes + remainingMinutes} min`)
     } catch (error) {
-      console.error('[Deepgram] Failed to add time context:', error)
+      console.error('[Deepgram] Time update error:', error)
     }
   }
 
