@@ -1116,26 +1116,26 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
               </svg>
             </a>
 
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-lg scale-90">
               {/* Back button - only show on step 2 */}
               {formStep === 2 && (
                 <button
                   type="button"
                   onClick={() => setFormStep(1)}
-                  className="mb-4 text-sm text-aibos-blue hover:underline flex items-center gap-1 font-medium"
+                  className="mb-3 text-sm text-aibos-blue hover:underline flex items-center gap-1 font-medium"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                   Back
                 </button>
               )}
 
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2 font-mono">
                 Try a Live AI Interview
               </h1>
 
-              <p className="text-gray-600 mb-8 text-sm">
+              <p className="text-gray-600 mb-6 text-sm">
                 Experience our AI interviewer in action for the <strong>{interviewConfig.jobTitle}</strong> position. Enter your details to begin the demo.
               </p>
 
