@@ -66,7 +66,7 @@ export default function RootLayout({
       }}
     >
       <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-        <body className="font-mono text-[0.85rem]">{children}</body>
+        <body className="font-sans">{children}</body>
       </html>
     </ClerkProvider>
   )
