@@ -612,7 +612,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
   const voiceAgent = useVoiceAgent({
     apiKey: voiceConfig?.apiKey || '',
     instructions: voiceConfig?.instructions || buildInstructions(),
-    voice: voiceConfig?.voice || 'aura-asteria-en',
+    voice: voiceConfig?.voice || 'aura-2-amalthea-en',
     speechSpeed: voiceConfig?.speechSpeed || 1.0,
     thinkProvider: voiceConfig?.thinkProvider || 'open_ai',
     thinkModel: voiceConfig?.thinkModel || 'gpt-4o-mini',

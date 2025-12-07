@@ -78,7 +78,7 @@ These transitions should feel conversational, not robotic.`
       apiKey: deepgramApiKey,
       instructions: professionalInstructions,
       config: {
-        voice: 'aura-asteria-en',
+        voice: 'aura-2-amalthea-en',
         speechSpeed: 1.15,
         thinkModel: 'gpt-4o-mini',
         thinkProvider: 'open_ai',
