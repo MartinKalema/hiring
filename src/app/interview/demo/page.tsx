@@ -2020,7 +2020,7 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
           {/* Transcript text - terminal style with typing cursor */}
           <div className="mt-8 max-w-6xl px-6">
             <p className="text-sm md:text-base leading-relaxed text-gray-800 text-center font-mono">
-              {displayedText || 'Welcome to your interview...'}
+              {displayedText || ''}
               <span className="inline-block w-2 h-5 ml-1 bg-[#0066cc] animate-pulse align-middle"></span>
             </p>
           </div>
