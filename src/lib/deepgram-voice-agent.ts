@@ -367,20 +367,24 @@ export class DeepgramVoiceAgent {
     return sum / dataArray.length / 255
   }
 
-  updatePrompt(additionalInstructions: string): void {
+  addTimeContext(elapsedMinutes: number, remainingMinutes: number, action: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('[Deepgram] Cannot update prompt - not connected')
       return
     }
 
     try {
+      let promptUpdate = `\n\n[TIME: ${elapsedMinutes} min elapsed, ${remainingMinutes} min remaining]`
+      if (action) {
+        promptUpdate += `\n${action}`
+      }
+
       this.ws.send(JSON.stringify({
         type: 'UpdatePrompt',
-        prompt: additionalInstructions
+        prompt: promptUpdate
       }))
-      console.log('[Deepgram] Updated prompt with:', additionalInstructions)
+      console.log(`[Time] ${elapsedMinutes}/${elapsedMinutes + remainingMinutes} min`)
     } catch (error) {
-      console.error('[Deepgram] Failed to update prompt:', error)
+      console.error('[Deepgram] Time update error:', error)
     }
   }
 
