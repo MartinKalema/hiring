@@ -136,7 +136,7 @@ export class DeepgramVoiceAgent {
             listen: {
               provider: {
                 type: 'deepgram',
-                model: this.options.listenModel || 'nova-3'
+                model: this.options.listenModel || 'flux'
               }
             },
             think: {
