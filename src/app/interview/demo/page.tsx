@@ -1837,7 +1837,13 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Microphone</h3>
                 <div className="mb-6">
                   <select
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-aibos-blue focus:border-aibos-blue bg-white text-gray-800"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-aibos-blue focus:border-aibos-blue bg-white text-gray-800 appearance-none"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.75rem center',
+                      backgroundSize: '1.25rem'
+                    }}
                     value={selectedMic}
                     onChange={(e) => setSelectedMic(e.target.value)}
                   >
@@ -1922,7 +1928,13 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
                 {/* Camera Selector */}
                 <select
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-aibos-blue focus:border-aibos-blue bg-white text-gray-800 mb-6"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-aibos-blue focus:border-aibos-blue bg-white text-gray-800 mb-6 appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.75rem center',
+                    backgroundSize: '1.25rem'
+                  }}
                   value={selectedCamera}
                   onChange={(e) => setSelectedCamera(e.target.value)}
                 >
