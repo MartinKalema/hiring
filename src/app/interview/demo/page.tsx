@@ -714,32 +714,32 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
           if (newTime === checkpoints.phase1End && !timeCheckpointsTriggered.current.has(checkpoints.phase1End)) {
             timeCheckpointsTriggered.current.add(checkpoints.phase1End)
-            voiceAgent.injectMessage('TIME UPDATE: 5 minutes elapsed. Transition to Phase 2 (Technical Assessment) now.')
+            console.log('[Interview] 5 min - Phase 1 complete')
           }
 
           if (newTime === checkpoints.sevenMin && !timeCheckpointsTriggered.current.has(checkpoints.sevenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.sevenMin)
-            voiceAgent.injectMessage('TIME UPDATE: 7 minutes elapsed. Move to next technical topic if still on first one.')
+            console.log('[Interview] 7 min elapsed')
           }
 
           if (newTime === checkpoints.tenMin && !timeCheckpointsTriggered.current.has(checkpoints.tenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.tenMin)
-            voiceAgent.injectMessage('TIME UPDATE: 10 minutes elapsed. Ensure you have covered multiple technical areas.')
+            console.log('[Interview] 10 min elapsed')
           }
 
           if (newTime === checkpoints.twelveMin && !timeCheckpointsTriggered.current.has(checkpoints.twelveMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.twelveMin)
-            voiceAgent.injectMessage('TIME UPDATE: 12 minutes elapsed. Begin wrapping up current topic.')
+            console.log('[Interview] 12 min elapsed')
           }
 
           if (newTime === checkpoints.thirteenMin && !timeCheckpointsTriggered.current.has(checkpoints.thirteenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.thirteenMin)
-            voiceAgent.injectMessage('TIME UPDATE: 13 minutes elapsed. Start closing phase.')
+            console.log('[Interview] 13 min elapsed')
           }
 
           if (newTime === checkpoints.fourteenMin && !timeCheckpointsTriggered.current.has(checkpoints.fourteenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.fourteenMin)
-            voiceAgent.injectMessage('TIME UPDATE: 14 minutes elapsed. Final minute - deliver closing statement.')
+            console.log('[Interview] 14 min elapsed')
           }
 
           if (newTime >= maxSeconds) {
