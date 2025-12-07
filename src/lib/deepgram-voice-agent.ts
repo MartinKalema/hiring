@@ -132,11 +132,11 @@ export class DeepgramVoiceAgent {
             }
           },
           agent: {
-            language: this.options.language || 'en',
             listen: {
               provider: {
                 type: 'deepgram',
-                model: this.options.listenModel || 'flux'
+                version: 'v2',
+                model: this.options.listenModel || 'flux-general-en'
               }
             },
             think: {
