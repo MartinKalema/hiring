@@ -714,17 +714,17 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself, and asking i
 
           if (newTime === checkpoints.phase1End && !timeCheckpointsTriggered.current.has(checkpoints.phase1End)) {
             timeCheckpointsTriggered.current.add(checkpoints.phase1End)
-            voiceAgent.updatePrompt('\n\nTIME CHECK: 5 minutes have elapsed. You must now transition to Phase 2 (Technical Assessment). After the candidate finishes their current response, say: "Great! Now let\'s shift to some technical questions."')
+            voiceAgent.addTimeContext(5, 10, 'Transition to Phase 2 Technical questions')
           }
 
           if (newTime === checkpoints.tenMin && !timeCheckpointsTriggered.current.has(checkpoints.tenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.tenMin)
-            voiceAgent.updatePrompt('\n\nTIME CHECK: 10 minutes have elapsed (2/3 through interview). Ensure you have covered multiple technical areas. Move quickly between topics.')
+            voiceAgent.addTimeContext(10, 5, 'Ensure multiple technical areas covered')
           }
 
           if (newTime === checkpoints.thirteenMin && !timeCheckpointsTriggered.current.has(checkpoints.thirteenMin)) {
             timeCheckpointsTriggered.current.add(checkpoints.thirteenMin)
-            voiceAgent.updatePrompt('\n\nTIME CHECK: 13 minutes elapsed. Only 2 minutes remaining. After current response, begin wrapping up the interview.')
+            voiceAgent.addTimeContext(13, 2, 'Begin wrapping up interview')
           }
 
           if (newTime >= maxSeconds) {

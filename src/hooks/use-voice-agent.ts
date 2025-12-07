@@ -51,7 +51,7 @@ export interface UseVoiceAgentReturn {
   connect: (overrides?: ConnectOptions) => Promise<void>
   disconnect: () => void
   interrupt: () => void
-  updatePrompt: (additionalInstructions: string) => void
+  addTimeContext: (elapsedMinutes: number, remainingMinutes: number, action: string) => void
 }
 
 export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentReturn {
@@ -135,8 +135,8 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     console.warn('[Voice Agent] Interrupt not supported with SDK implementation')
   }, [])
 
-  const updatePrompt = useCallback((additionalInstructions: string) => {
-    agentRef.current?.updatePrompt(additionalInstructions)
+  const addTimeContext = useCallback((elapsedMinutes: number, remainingMinutes: number, action: string) => {
+    agentRef.current?.addTimeContext(elapsedMinutes, remainingMinutes, action)
   }, [])
 
   // Cleanup on unmount
@@ -160,6 +160,6 @@ export function useVoiceAgent(options: UseVoiceAgentOptions): UseVoiceAgentRetur
     connect,
     disconnect,
     interrupt,
-    updatePrompt,
+    addTimeContext,
   }
 }

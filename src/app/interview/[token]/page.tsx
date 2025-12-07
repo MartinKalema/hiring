@@ -357,10 +357,12 @@ Start by greeting ${candidateInfo.firstName}, introducing yourself as AIR, expla
   // Time warning injection
   useEffect(() => {
     if (stage === 'active' && isTimeWarning && !timeWarningGiven) {
-      voiceAgent.updatePrompt('\n\nTIME CHECK: 2 minutes remaining in the interview. After current response, start wrapping up.')
+      const elapsedMins = Math.floor(elapsedTime / 60)
+      const remainingMins = Math.ceil((interviewConfig.maxDuration * 60 - elapsedTime) / 60)
+      voiceAgent.addTimeContext(elapsedMins, remainingMins, 'Start wrapping up')
       setTimeWarningGiven(true)
     }
-  }, [stage, isTimeWarning, timeWarningGiven, voiceAgent])
+  }, [stage, isTimeWarning, timeWarningGiven, voiceAgent, elapsedTime, interviewConfig.maxDuration])
 
   // Cleanup word reveal interval on unmount
   useEffect(() => {
